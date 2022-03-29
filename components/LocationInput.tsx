@@ -1,33 +1,65 @@
-import * as WebBrowser from 'expo-web-browser';
-import { StyleSheet, TouchableOpacity, TextInput, Button, Alert } from 'react-native';
+import { StyleSheet, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Location } from '../enum/Location';
 import { Text, View } from './Themed';
-import { CurrentLocation } from './CurrentLocation';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import React from 'react';
 
-export default function LocationInput({ location, askCurrentLoc }: { location : Location, askCurrentLoc : boolean }) {
-  // Where are you starting your journey?
-  // Current Location option
-  // Or
-  // Provide your starting position
-  // List of previous locations
+export default function LocationInput({ location, askCurrentLoc, navigation }: 
+  { location : Location, askCurrentLoc : boolean, navigation : any}) {
   return (
-    <View>
-      <Text style={styles.getStartedText}>
+    <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardContainer}
+      >
+      <View style={styles.logo}>
+        <Text style={styles.image}>
+          <Image source={require('../assets/images/logo.png')} style={styles.image} />
+        </Text>
+      </View>
+      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+      <Text style={styles.text}>
         Where are you {location == Location.Starting ? 'starting' : 'finishing'} your journey?
       </Text>
-      {askCurrentLoc ? CurrentLocation : <View/>}
-      <TextInput
-        style={styles.textInput}
-        defaultValue="You can type in me"
-      />
-    </View>
+      {askCurrentLoc ? 
+      <View>
+        <Button
+            title="Use Current Location"
+            onPress={() => {navigation.navigate(location === Location.Starting ? 'SetEndScreen' : 'ResultScreen')}}
+        />
+        <Text style={styles.text}>Or</Text>
+      </View> : <View/>}
+      <View style={{flex: 1}}>
+        <GooglePlacesAutocomplete
+          placeholder="Search"
+          query={{
+            key: 'AIzaSyD5CTST1_bokWzoW_nPNzwsHI3S8ZVcAj0',
+            language: 'en', // language of the results
+          }}
+          onPress={(data, details = null) => console.log(data)}
+          onFail={(error) => console.error(error)}
+          requestUrl={{
+            url:
+              'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
+            useOnPlatform: 'web',
+          }} // this in only required for use on the web. See https://git.io/JflFv more for details.
+        />
+      </View>
+      <Button
+            title="Go"
+            onPress={() => {navigation.navigate(location === Location.Starting ? 'SetEndScreen' : 'ResultScreen')}}
+        />
+    </KeyboardAvoidingView>
   );
+
+  // Add previous locations
 }
 
-function handleHelpPress() {
-  WebBrowser.openBrowserAsync(
-    'https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet'
-  );
+const permissionHandle = async () => {
+
+  console.log('here')
+
+
+
 }
 
 const styles = StyleSheet.create({
@@ -42,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingHorizontal: 4,
   },
-  getStartedText: {
+  text: {
     fontSize: 17,
     lineHeight: 24,
     textAlign: 'center',
@@ -64,5 +96,21 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     borderWidth: 1
     
+  },
+  logo: {
+    marginTop: 100,
+  },
+  keyboardContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  separator: {
+    marginVertical: 30,
+    height: 1,
+    width: '80%',
+  },
+  image: {
+    height: 200,
+    width: 135,
   },
 });
