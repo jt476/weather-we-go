@@ -3,7 +3,10 @@ import { Location } from '../enum/Location';
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 
-export default function ResultScreen({ start, finish }: { start : Location, finish : Location }) {
+export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
+  console.log(route.params);
+  console.log('start: ' + route.params.startLoc);
+  console.log('finish: ' + route.params.endLoc);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tab Two</Text>

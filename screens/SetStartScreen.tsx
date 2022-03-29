@@ -1,8 +1,8 @@
 import LocationInput from '../components/LocationInput';
 import { Location } from '../enum/Location';
 
-export default function SetStartScreen({ navigation } : {navigation: any}) {
+export default function SetStartScreen({ route, navigation } : {route: any, navigation: any}) {
   return (
-    <LocationInput location={Location.Starting} askCurrentLoc={true} navigation={navigation}/>
+    <LocationInput route={route} location={Location.Starting} navigation={navigation}/>
   );
 }

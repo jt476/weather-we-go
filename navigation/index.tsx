@@ -13,6 +13,7 @@ import SetStartScreen from '../screens/SetStartScreen';
 import SetEndScreen from '../screens/SetEndScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+  let state = {useCurrentLocation : true}
   return (
     <NavigationContainer theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack.Navigator initialRouteName="SetStartScreen">

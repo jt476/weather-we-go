@@ -4,8 +4,45 @@ import { Text, View } from './Themed';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import React from 'react';
 
-export default function LocationInput({ location, askCurrentLoc, navigation }: 
-  { location : Location, askCurrentLoc : boolean, navigation : any}) {
+export default function LocationInput({ route, location, navigation }: 
+    { route : any, location : Location, navigation : any}) {
+  let nextScreen = location === Location.Starting ? 'SetEndScreen' : 'ResultScreen';
+        
+  let usedCurrentLoc = false;
+  if(route.params !== undefined && route.params.usedCurrentLoc !== undefined) 
+    usedCurrentLoc = route.params.usedCurrentLoc;
+
+  const navigateOnwards = (params : any) => {
+    let loc;
+    if(params.getCurrentLoc) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          loc = position;
+        },
+        (error) => {
+          console.error(error);
+          alert("Please enable location services to use current location.");
+        },
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+      );
+    } else {
+      loc = params.locationObj;
+    }
+    if(loc !== undefined) {
+      if(params.locationEnum === Location.Starting)
+        navigation.navigate(nextScreen, {
+          usedCurrentLoc : params.getCurrentLoc,
+          startLoc : params.locationObj,
+        });
+      else
+        navigation.navigate(nextScreen, {
+          usedCurrentLoc : params.getCurrentLoc,
+          startLoc : route.params.startLoc,
+          endLoc : params.locationObj,
+        });
+    }
+  }
+
   return (
     <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -20,15 +57,17 @@ export default function LocationInput({ location, askCurrentLoc, navigation }:
       <Text style={styles.text}>
         Where are you {location == Location.Starting ? 'starting' : 'finishing'} your journey?
       </Text>
-      {askCurrentLoc ? 
+      { !usedCurrentLoc ? 
       <View>
         <Button
             title="Use Current Location"
-            onPress={() => {navigation.navigate(location === Location.Starting ? 'SetEndScreen' : 'ResultScreen')}}
+            onPress={() => navigateOnwards(
+              {navigation: navigation, getCurrentLoc: true, locationEnum: location, locationObj: "test"}
+            )}
         />
         <Text style={styles.text}>Or</Text>
       </View> : <View/>}
-      <View style={{flex: 1}}>
+      <View>
         <GooglePlacesAutocomplete
           placeholder="Search"
           query={{
@@ -45,21 +84,14 @@ export default function LocationInput({ location, askCurrentLoc, navigation }:
         />
       </View>
       <Button
-            title="Go"
-            onPress={() => {navigation.navigate(location === Location.Starting ? 'SetEndScreen' : 'ResultScreen')}}
-        />
+        title="Go"
+        onPress={() => navigateOnwards(
+          {navigation: navigation, getCurrentLoc: false, locationEnum: location, locationObj: "test"}
+        )}/>
     </KeyboardAvoidingView>
   );
 
   // Add previous locations
-}
-
-const permissionHandle = async () => {
-
-  console.log('here')
-
-
-
 }
 
 const styles = StyleSheet.create({
