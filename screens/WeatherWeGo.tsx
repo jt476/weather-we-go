@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-
+import { Location } from '../enum/Location';
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 
-export default function TabTwoScreen() {
+export default function WeatherWeGo({ start, finish }: { start : Location, finish : Location }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tab Two</Text>
