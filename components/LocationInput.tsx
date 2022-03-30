@@ -12,33 +12,37 @@ export default function LocationInput({ route, location, navigation }:
   if(route.params !== undefined && route.params.usedCurrentLoc !== undefined) 
     usedCurrentLoc = route.params.usedCurrentLoc;
 
+  const useCurrentLoc = (params : any) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        params.coordinates = {lat : position.coords.latitude, lon : position.coords.longitude }
+        navigateOnwards(params);
+      },
+      (error) => {
+        console.error(error);
+        alert("Please enable location services to use current location.");
+      },
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+    );
+  }
+
   const navigateOnwards = (params : any) => {
-    let loc;
-    if(params.getCurrentLoc) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          loc = position;
-        },
-        (error) => {
-          console.error(error);
-          alert("Please enable location services to use current location.");
-        },
-        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-      );
-    } else {
-      loc = params.locationObj;
-    }
-    if(loc !== undefined) {
+    console.log(params);
+    if(params.coordinates !== undefined) {
+      console.log(params.coordinates);
       if(params.locationEnum === Location.Starting)
         navigation.navigate(nextScreen, {
           usedCurrentLoc : params.getCurrentLoc,
-          startLoc : params.locationObj,
+          startLat : params.coordinates.lat,
+          startLon : params.coordinates.lon,
         });
       else
         navigation.navigate(nextScreen, {
           usedCurrentLoc : params.getCurrentLoc,
-          startLoc : route.params.startLoc,
-          endLoc : params.locationObj,
+          startLat : route.params.startLat,
+          startLon : route.params.startLon,
+          endLat : params.coordinates.lat,
+          endLon : params.coordinates.lon,
         });
     }
   }
@@ -61,8 +65,8 @@ export default function LocationInput({ route, location, navigation }:
       <View>
         <Button
             title="Use Current Location"
-            onPress={() => navigateOnwards(
-              {navigation: navigation, getCurrentLoc: true, locationEnum: location, locationObj: "test"}
+            onPress={() => useCurrentLoc(
+              {navigation: navigation, getCurrentLoc: true, locationEnum: location}
             )}
         />
         <Text style={styles.text}>Or</Text>
@@ -86,7 +90,7 @@ export default function LocationInput({ route, location, navigation }:
       <Button
         title="Go"
         onPress={() => navigateOnwards(
-          {navigation: navigation, getCurrentLoc: false, locationEnum: location, locationObj: "test"}
+          {navigation: navigation, getCurrentLoc: false, locationEnum: location, coordinates: {lat:1,lon:1}}
         )}/>
     </KeyboardAvoidingView>
   );

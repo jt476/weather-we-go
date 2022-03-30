@@ -7,6 +7,7 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
   console.log(route.params);
   console.log('start: ' + route.params.startLoc);
   console.log('finish: ' + route.params.endLoc);
+  //https://api.openweathermap.org/data/2.5/weather?lat=52.955120&lon=-1.234&appid=6b142a521b92aa23812bee18e3b69dc1
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tab Two</Text>
