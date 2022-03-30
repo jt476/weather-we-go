@@ -2,7 +2,6 @@ import { StyleSheet, Button, KeyboardAvoidingView, Platform, Image } from 'react
 import { Location } from '../enum/Location';
 import { Text, View } from './Themed';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import React from 'react';
 
 export default function LocationInput({ route, location, navigation }: 
     { route : any, location : Location, navigation : any}) {
@@ -27,9 +26,7 @@ export default function LocationInput({ route, location, navigation }:
   }
 
   const navigateOnwards = (params : any) => {
-    console.log(params);
     if(params.coordinates !== undefined) {
-      console.log(params.coordinates);
       if(params.locationEnum === Location.Starting)
         navigation.navigate(nextScreen, {
           usedCurrentLoc : params.getCurrentLoc,
@@ -72,13 +69,20 @@ export default function LocationInput({ route, location, navigation }:
         <Text style={styles.text}>Or</Text>
       </View> : <View/>}
       <View>
-        <GooglePlacesAutocomplete
+        <GooglePlacesAutocomplete fetchDetails={true}
           placeholder="Search"
           query={{
-            key: 'AIzaSyD5CTST1_bokWzoW_nPNzwsHI3S8ZVcAj0',
+            key: 'AIzaSyC-W10dPkAwJ8O3oAr9keKA0pri511Y9M0',
             language: 'en', // language of the results
           }}
-          onPress={(data, details = null) => console.log(data)}
+          onPress={(data, details = null) => {
+            if(details !== null)
+              navigateOnwards(
+                {navigation: navigation, getCurrentLoc: false, locationEnum: location, coordinates: {
+                  lat:details.geometry.location.lat,lon:details.geometry.location.lng
+                }}
+              );
+          }}
           onFail={(error) => console.error(error)}
           requestUrl={{
             url:
