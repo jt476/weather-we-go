@@ -43,7 +43,7 @@ export default function LocationInput({ route, location, navigation }:
         });
     }
   }
-
+//{ !usedCurrentLoc ? 
   return (
     <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -58,7 +58,7 @@ export default function LocationInput({ route, location, navigation }:
       <Text style={styles.text}>
         Where are you {location == Location.Starting ? 'starting' : 'finishing'} your journey?
       </Text>
-      { !usedCurrentLoc ? 
+      { !false ? 
       <View>
         <Button
             title="Use Current Location"
