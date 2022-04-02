@@ -12,7 +12,7 @@ export default function WeatherReport(weatherData : any) {
     return (
         <View style={styles.container}>
             <View style={styles.titleBox}>
-                <Image style={styles.weatherIcon} source={require('../assets/gifs/'+getIconTypeFromWeather(weather.main)+'.gif')}/>
+                <Image style={styles.weatherIcon} source={getIconTypeFromWeather(weather.main)}/>
                 <Text style={styles.title}>{weather.description.replace(/\b(\w)/g, (k: string) => k.toUpperCase())}</Text>
                 <Text style={styles.location}>Location: {location}</Text>
             </View>
@@ -26,14 +26,13 @@ export default function WeatherReport(weatherData : any) {
 const styles = StyleSheet.create({
     container: {
         width: '95%',
-        flex: 1,
         backgroundColor: "white",
         margin: 10,
     },
     weatherIcon: {
         margin: 10,
-        height: '50px',
-        width: '50px'
+        height: 50,
+        width: 50
     },
     titleBox: {
         marginLeft: 10,
@@ -64,10 +63,11 @@ const styles = StyleSheet.create({
 
 function getIconTypeFromWeather(weather: string) {
     if(weather.toLowerCase() === "clouds")
-        return "partly_cloud"
+        return require('../assets/gifs/partly_cloud.gif');
     if(weather.toLowerCase() === "sun")
-        return "sun"
-
+        return require('../assets/gifs/sun.gif');
+    if(weather.toLowerCase() === "rain")
+        return require('../assets/gifs/rain.gif');
     console.log("set weather icon type: "+weather);
-    return "fog";
+    return require('../assets/gifs/fog.gif');
 }

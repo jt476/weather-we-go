@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { Location } from '../enum/Location';
 import WeatherReport from '../components/WeatherReport';
 import { Text, View } from '../components/Themed';
 import axios from 'axios';
@@ -18,7 +17,6 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
     const source = axios.CancelToken.source();
     const url = `${weatherBaseUrl}/data/2.5/weather`;
     const fetchWeather = async (coordinate : any) => {
-      console.log(coordinate);
       try {
         const response = await axios.get(url, { params: {
           lat: coordinate.lat,
@@ -32,9 +30,7 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
           throw new Error("Failed to fetch weather");
         }
       } catch (error) {
-        if(axios.isCancel(error)){
-          console.log('Data fetching cancelled');
-        }
+        console.error(error);
       }
     };
 
@@ -47,17 +43,17 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
     return () => source.cancel("Data fetching cancelled");
   }, [weatherData, coordinates]);
   
-  // todo, remove duplicated weather stations
-  
-  /*console.log('latDistance: '+latDistance);
-  console.log('lonDistance: '+lonDistance);
-  console.log('totalDistance: '+totalDistance);
-  console.log(arr);*/
+  let filteredWeatherData = weatherData.filter((value, index, self) =>
+    index === self.findIndex((w) => (
+      w.weather.id === value.weather.id
+    ))
+  )
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{generateWeatherText(weatherData)}</Text>
+      <Text style={styles.title}>{generateJourneyWeatherText(filteredWeatherData, route.params.origin, route.params.destination)}</Text>
+      <Text style={styles.title}>{generateEndWeatherText(filteredWeatherData, route.params.destination)}</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      {weatherData.map(r => {
+      {filteredWeatherData.sort((a, b) => a.key > b.key ? 1 : -1).map(r => {
         if(r.weather !== undefined)
           return <WeatherReport key={r.key} weatherData={r.weather}/>
         else
@@ -105,7 +101,7 @@ const getAllCoordinates = (params : any) => {
     let lonJump = lonDistance / numOfCalls;
     for(let i = 0; i < numOfCalls; i++) {
         latStart += latJump;
-        lonDistance += lonJump;
+        lonStart += lonJump;
         coordinates.push({key: index++, lat: latStart, lon: lonStart, requested: false});
     }
   }
@@ -115,19 +111,58 @@ const getAllCoordinates = (params : any) => {
   return coordinates;
 }
 
-
-function generateWeatherText(weatherData : any) {
-  var weatherTypes = new Set<string>();
+function generateJourneyWeatherText(weatherData : any, origin : string, destination : string) {
+  let weatherCount : { [key:string] : number } = {};
   
   weatherData.map((i: any) => {
-    if(i.weather !== undefined && i.weather.weather.length > 0)
-      weatherTypes.add(i.weather.weather[0].main
-  )});
+    if(i.weather !== undefined && i.weather.weather.length > 0) {
+      let weather = i.weather.weather[0].main;
+      if( weatherCount[weather] == undefined )
+        weatherCount[weather] = 1;
+      else
+        weatherCount[weather]++;
+    }
+  });
 
-  let weatherTypesArr = Array.from(weatherTypes.values());
+  let weatherTypes = Object.keys(weatherCount);
+  let weatherFrequency = Object.values(weatherCount);
+  weatherFrequency.sort(function(a, b){return b-a});
 
-  if(weatherTypes.size == 1)
-    return "Your journey will be entirely "+addYSuffix(weatherTypesArr.at(0))+"!";
+  if(weatherTypes.length > 0) {
+    let prefix = "Your journey from "+origin+" to "+destination+" should be ";    
+
+    if(weatherTypes.length == 1)
+      return prefix+"entirely "+addYSuffix(weatherTypes[0])+"!";
+    if(weatherTypes.length == 2) {
+      if(weatherFrequency[0] === weatherFrequency[1])
+        return prefix+"be half "+addYSuffix(weatherTypes[0])+" and half "+addYSuffix(weatherTypes[1])+"!";
+      if(weatherFrequency[0] < weatherFrequency[1])
+        return prefix+"be mostly "+addYSuffix(weatherTypes[1])+" with a little bit of "+addYSuffix(weatherTypes[0])+"!";
+      else
+        return prefix+"be mostly "+addYSuffix(weatherTypes[0])+" with a little bit of "+addYSuffix(weatherTypes[1])+"!";
+    }
+  };
+  return "";
+}
+
+function generateEndWeatherText(weatherData : any, destination : string) {
+  try{
+    if(weatherData !== undefined && weatherData.length > 0 && weatherData[weatherData.length-1].weather !== undefined) {
+      let lastItem = weatherData[weatherData.length-1].weather;
+      let endWeather = lastItem.weather[0].main;
+      if(endWeather.toLowerCase() === "clouds")
+        return "It is likely to be cloudy in "+destination+" when you arrive.";
+      if(endWeather.toLowerCase() === "sun")
+        return "It is likely to be nice and sunny in "+destination+" when you arrive.";
+      if(endWeather.toLowerCase() === "rain")
+        return "Bring an umbrella. You can expect it to be raining in "+destination+" for when you arrive.";
+
+      console.log("unknown endWeather: "+endWeather);
+    }
+  } catch (error) {
+    console.error(error);
+    return "";
+  }
 }
 
 function addYSuffix(weatherType: string | undefined) {
@@ -138,6 +173,8 @@ function addYSuffix(weatherType: string | undefined) {
     return "cloudy";
   if(weatherType.toLowerCase() === "sun")
     return "sunny";
+  if(weatherType.toLowerCase() === "rain")
+    return "rainy";
 
   console.log("unknown weather type: "+weatherType);
   return weatherType;

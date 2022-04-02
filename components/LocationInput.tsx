@@ -1,6 +1,7 @@
 import { StyleSheet, Button, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { Location } from '../enum/Location';
 import { Text, View } from './Themed';
+import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 export default function LocationInput({ route, location, navigation }: 
@@ -12,38 +13,38 @@ export default function LocationInput({ route, location, navigation }:
     usedCurrentLoc = route.params.usedCurrentLoc;
 
   const useCurrentLoc = (params : any) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        params.coordinates = {lat : position.coords.latitude, lon : position.coords.longitude }
-        navigateOnwards(params);
-      },
-      (error) => {
-        console.error(error);
-        alert("Please enable location services to use current location.");
-      },
-      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-    );
+    (async () => {
+      let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Permission to access location was denied');
+        return;
+      }
+
+      let loc = await ExpoLocation.getCurrentPositionAsync({accuracy: 1});
+      params.coordinates = {lat : loc.coords.latitude, lon : loc.coords.longitude }
+      navigateOnwards(params, "your current location");
+    })();
   }
 
-  const navigateOnwards = (params : any) => {
+  const navigateOnwards = (params : any, location : string) => {
     if(params.coordinates !== undefined) {
       if(params.locationEnum === Location.Starting)
         navigation.navigate(nextScreen, {
           usedCurrentLoc : params.getCurrentLoc,
           startLat : params.coordinates.lat,
           startLon : params.coordinates.lon,
+          origin : location,
         });
       else
         navigation.navigate(nextScreen, {
-          usedCurrentLoc : params.getCurrentLoc,
-          startLat : route.params.startLat,
-          startLon : route.params.startLon,
+          ...route.params,
           endLat : params.coordinates.lat,
           endLon : params.coordinates.lon,
+          destination : location,
         });
     }
   }
-//{ !usedCurrentLoc ? 
+  //{ !usedCurrentLoc ?  
   return (
     <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -58,7 +59,7 @@ export default function LocationInput({ route, location, navigation }:
       <Text style={styles.text}>
         Where are you {location == Location.Starting ? 'starting' : 'finishing'} your journey?
       </Text>
-      { !false ? 
+      { !false ?  
       <View>
         <Button
             title="Use Current Location"
@@ -75,12 +76,12 @@ export default function LocationInput({ route, location, navigation }:
             key: 'AIzaSyC-W10dPkAwJ8O3oAr9keKA0pri511Y9M0',
             language: 'en', // language of the results
           }}
-          onPress={(data, details = null) => {
+          onPress={(data : any, details = null) => {
             if(details !== null)
               navigateOnwards(
                 {navigation: navigation, getCurrentLoc: false, locationEnum: location, coordinates: {
-                  lat:details.geometry.location.lat,lon:details.geometry.location.lng
-                }}
+                  lat: details.geometry.location.lat, lon: details.geometry.location.lng
+                }}, data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
               );
           }}
           onFail={(error) => console.error(error)}
@@ -94,7 +95,7 @@ export default function LocationInput({ route, location, navigation }:
       <Button
         title="Go"
         onPress={() => navigateOnwards(
-          {navigation: navigation, getCurrentLoc: false, locationEnum: location, coordinates: {lat:1,lon:1}}
+          {navigation: navigation, getCurrentLoc: false, locationEnum: location, coordinates: {lat:1,lon:1}}, "yolo"
         )}/>
     </KeyboardAvoidingView>
   );
