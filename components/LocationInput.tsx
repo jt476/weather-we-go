@@ -73,7 +73,7 @@ export default function LocationInput({ route, location, navigation }:
         <GooglePlacesAutocomplete fetchDetails={true}
           placeholder="Search"
           query={{
-            key: 'AIzaSyC-W10dPkAwJ8O3oAr9keKA0pri511Y9M0',
+            key: '**api-key***',
             language: 'en', // language of the results
           }}
           onPress={(data : any, details = null) => {

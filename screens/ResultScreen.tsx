@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 const weatherBaseUrl = "https://api.openweathermap.org";
-const weatherAppId = "6b142a521b92aa23812bee18e3b69dc1";
+const weatherAppId = "***app-id***";
 let coordinates: any[] = [];
 
 export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
