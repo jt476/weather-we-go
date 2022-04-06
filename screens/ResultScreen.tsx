@@ -4,8 +4,7 @@ import { Text, View } from '../components/Themed';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-const weatherBaseUrl = "https://api.openweathermap.org";
-const weatherAppId = "***app-id***";
+const weatherBaseUrl = "https://johnnythompson.co.uk/orchestrator/weather";
 let coordinates: any[] = [];
 
 export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
@@ -15,13 +14,11 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
 
   useEffect(() => {
     const source = axios.CancelToken.source();
-    const url = `${weatherBaseUrl}/data/2.5/weather`;
     const fetchWeather = async (coordinate : any) => {
       try {
-        const response = await axios.get(url, { params: {
+        const response = await axios.get(weatherBaseUrl, { params: {
           lat: coordinate.lat,
           lon: coordinate.lon,
-          appid: weatherAppId,
       } });
         if (response.status === 200) {
           setWeatherData(oldArray => [...oldArray, {key: coordinate.key, weather: response.data}])

@@ -3,12 +3,26 @@ import { Location } from '../enum/Location';
 import { Text, View } from './Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
+const apiKeysBaseUrl = 'https://johnnythompson.co.uk/orchestrator/api-key/';
 
 export default function LocationInput({ route, location, navigation }: 
     { route : any, location : Location, navigation : any}) {
+  const [googlePlacesApiKey, setGooglePlacesApiKey] = useState<any[]>([]);
+  
   let nextScreen = location === Location.Starting ? 'SetEndScreen' : 'ResultScreen';
-        
   let usedCurrentLoc = false;
+
+  useEffect(() => {
+    const url = `${apiKeysBaseUrl}google-places`;
+    axios.get(url).then((response) => {
+      setGooglePlacesApiKey(response.data);
+      response.data;
+    });
+  }, []);
+
   if(route.params !== undefined && route.params.usedCurrentLoc !== undefined) 
     usedCurrentLoc = route.params.usedCurrentLoc;
 
@@ -73,7 +87,7 @@ export default function LocationInput({ route, location, navigation }:
         <GooglePlacesAutocomplete fetchDetails={true}
           placeholder="Search"
           query={{
-            key: '**api-key***',
+            key: googlePlacesApiKey,
             language: 'en', // language of the results
           }}
           onPress={(data : any, details = null) => {
@@ -102,6 +116,10 @@ export default function LocationInput({ route, location, navigation }:
 
   // Add previous locations
 }
+
+function getApiKey(name: string) {
+  
+};
 
 const styles = StyleSheet.create({
   getStartedContainer: {
