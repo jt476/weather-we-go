@@ -1,4 +1,3 @@
-import axios from 'axios';
 import LocationInput from '../components/LocationInput';
 import { Location } from '../enum/Location';
 
