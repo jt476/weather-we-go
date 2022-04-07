@@ -132,11 +132,11 @@ function generateJourneyWeatherText(weatherData : any, origin : string, destinat
       return prefix+"entirely "+addYSuffix(weatherTypes[0])+"!";
     if(weatherTypes.length == 2) {
       if(weatherFrequency[0] === weatherFrequency[1])
-        return prefix+"be half "+addYSuffix(weatherTypes[0])+" and half "+addYSuffix(weatherTypes[1])+"!";
+        return prefix+" half "+addYSuffix(weatherTypes[0])+" and half "+addYSuffix(weatherTypes[1])+"!";
       if(weatherFrequency[0] < weatherFrequency[1])
-        return prefix+"be mostly "+addYSuffix(weatherTypes[1])+" with a little bit of "+addYSuffix(weatherTypes[0])+"!";
+        return prefix+" mostly "+addYSuffix(weatherTypes[1])+" with a little bit of "+addYSuffix(weatherTypes[0])+"!";
       else
-        return prefix+"be mostly "+addYSuffix(weatherTypes[0])+" with a little bit of "+addYSuffix(weatherTypes[1])+"!";
+        return prefix+" mostly "+addYSuffix(weatherTypes[0])+" with a little bit of "+addYSuffix(weatherTypes[1])+"!";
     }
   };
   return "";

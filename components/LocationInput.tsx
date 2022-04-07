@@ -117,10 +117,6 @@ export default function LocationInput({ route, location, navigation }:
   // Add previous locations
 }
 
-function getApiKey(name: string) {
-  
-};
-
 const styles = StyleSheet.create({
   getStartedContainer: {
     alignItems: 'center',
