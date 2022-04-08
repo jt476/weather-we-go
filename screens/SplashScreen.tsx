@@ -1,4 +1,4 @@
-import { Animated, Button, Dimensions, StyleSheet } from 'react-native';
+import { Animated, Button, Dimensions, StyleSheet, Image } from 'react-native';
 import { View } from '../components/Themed';
 import { useEffect } from 'react';
 import Colors from '../constants/Colors';
@@ -7,7 +7,9 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let defaultAnimations = {
     toValue: { x: 0, y: 0 },
     useNativeDriver: false,
-    speed: 1000, 
+    speed: 1,
+    bounciness: 0,
+    overshootClamping: true,
   };
   let delay = 300;
 
@@ -50,8 +52,6 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     }).start();
   }, []);
 
-
-
   return (
     <View style={styles.container}>
       <Animated.View style={{flex: 1, backgroundColor: Colors.sun.background,
@@ -60,27 +60,32 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
       <Animated.View style={{flex: 1, backgroundColor: Colors.cloud.background,
           transform: [{ translateX: boxTwo.x }, { translateY: boxTwo.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.lightRain.background,
+      <Animated.View style={{justifyContent: 'center', alignItems: 'center', overflow: 'visible', paddingLeft: 20, paddingRight: 20,
+          flex: 1, backgroundColor: Colors.lightRain.background,
           transform: [{ translateX: boxThree.x }, { translateY: boxThree.y }]
-        }}/>
+        }}>
+        <Image source={require('../assets/images/logo_outlined.png')} style={styles.image} />
+      </Animated.View>
       <Animated.View style={{flex: 1, backgroundColor: Colors.rain.background,
           transform: [{ translateX: boxFour.x }, { translateY: boxFour.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background, 
           transform: [{ translateX: boxFive.x }, { translateY: boxFive.y }]
         }}/>
       <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background,
         transform: [{ translateX: boxSix.x }, { translateY: boxSix.y }]
-      }}>
-        <View style={styles.animatedBox}>
-          <Button title="Let's Go!"  onPress={() => navigation.navigate("SetStartScreen")}/>
-        </View>
+        }}>
+        
       </Animated.View>
       <Animated.View style={{flex: 1, backgroundColor: Colors.snow.background,
           transform: [{ translateX: boxSeven.x }, { translateY: boxSeven.y }]
       }}/>
     </View>
   );
+
+  //<View style={styles.animatedBox}>
+  //<Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
+  //</View>
 }
 
 const styles = StyleSheet.create({
@@ -90,6 +95,15 @@ const styles = StyleSheet.create({
   },
   animatedBox: {
     justifyContent: 'center',
-    alignContent: 'center'
-  }
+    alignItems: 'center'
+  },
+  logo: {
+    marginTop: 100,
+  },
+  image: {
+    height: 500,
+    width: '100%',
+    marginLeft: 50,
+    marginRight: 50,
+  },
 });
