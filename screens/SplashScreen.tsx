@@ -1,12 +1,15 @@
 import { Animated, Button, Dimensions, StyleSheet, Image } from 'react-native';
 import { View } from '../components/Themed';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Colors from '../constants/Colors';
+import LocationInputSlider from '../components/LocationInputSlider';
+import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
+import RecentLocations from '../components/RecentLocations';
 
 export default function SplashScreen({ route, navigation } : {route: any, navigation: any}) {
   let defaultAnimations = {
     toValue: { x: 0, y: 0 },
-    useNativeDriver: false,
+    useNativeDriver: true,
     speed: 0.1,
     bounciness: 0,
     overshootClamping: true,
@@ -21,8 +24,8 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let boxSix = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
   let boxSeven = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
 
-  let logoOpacity = new Animated.Value(0);
-  let buttonOpacity = new Animated.Value(0);
+  let overlayOpacity = new Animated.Value(0);
+  let miniLocationInput = new Animated.ValueXY({x:0, y: Dimensions.get('window').height});
 
   useEffect(() => {
     Animated.spring(boxOne, {
@@ -53,75 +56,115 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     Animated.spring(boxSeven, {
       ...defaultAnimations,
       delay: delay*6,
-    }).start()
-    Animated.timing(
-      logoOpacity,
-      {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: false,
-        delay: delay * 7
-      }
-    ).start();
-    Animated.timing(
-      buttonOpacity,
-      {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: false,
-        delay: delay * 7
-      }
-    ).start();
+    }).start(() => {
+      Animated.timing(
+        overlayOpacity,
+        {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }
+      ).start(() => {
+        Animated.spring(miniLocationInput, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+          speed: 0.1,
+          bounciness: 0,
+          overshootClamping: true,
+        }).start()
+      });
+    });
   }, []);
 
+  const handleLocationSlider = (location: any):void => {
+    console.log("yep "+location);
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={styles.backgroundViews}>
       <Animated.View style={{flex: 1, backgroundColor: Colors.sun.background,
           transform: [{ translateX: boxOne.x }, { translateY: boxOne.y }]
         }}/>
       <Animated.View style={{flex: 1, backgroundColor: Colors.cloud.background,
           transform: [{ translateX: boxTwo.x }, { translateY: boxTwo.y }]
         }}/>
-      <Animated.View style={{justifyContent: 'center', alignItems: 'center', overflow: 'visible', paddingLeft: 20, paddingRight: 20,
-          flex: 1, backgroundColor: Colors.lightRain.background, zIndex: 2,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.lightRain.background,
           transform: [{ translateX: boxThree.x }, { translateY: boxThree.y }]
-        }}>
-        <Animated.Image source={require('../assets/images/logo_outlined.png')} style={{
-          height: 535,
-          width: 365,
-          maxHeight: 535,
-          maxWidth: 365,
-          marginLeft: 50,
-          marginRight: 50,
-          opacity: logoOpacity,
-        }} />
-      </Animated.View>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.rain.background,
+        }}/>
+      <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background,
           transform: [{ translateX: boxFour.x }, { translateY: boxFour.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background, 
+      <Animated.View style={{flex: 1, backgroundColor: Colors.fog.background, 
           transform: [{ translateX: boxFive.x }, { translateY: boxFive.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background, justifyContent: 'center', alignItems: 'center',
+      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background,
         transform: [{ translateX: boxSix.x }, { translateY: boxSix.y }]
-        }}>
-        <Animated.View style={{opacity: buttonOpacity, width: 100}}>
-          <Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
-        </Animated.View>
-      </Animated.View>
+        }}/>
       <Animated.View style={{flex: 1, backgroundColor: Colors.snow.background,
           transform: [{ translateX: boxSeven.x }, { translateY: boxSeven.y }]
       }}/>
+      <Animated.View style={{
+          zIndex: 1, 
+          opacity: overlayOpacity, 
+          width: '100%', 
+          height: '100%', 
+          position: 'absolute',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column'
+        }}>
+        <Image source={require('../assets/images/logo_dark_outlined_square.png')} style={{
+          height: '90%',
+          width: '90%',
+          maxHeight: 535,
+          maxWidth: 535,
+          resizeMode: "contain",
+          marginBottom: 50,
+          flex: 1,
+        }} />
+        <Animated.View style={{
+          backgroundColor: '#979dac',
+          width: '100%',
+          height: '20%',
+          borderTopLeftRadius: 15,
+          borderTopRightRadius: 15,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+          justifyContent: 'center',
+          padding: 20,
+          flex: 10, 
+          transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
+          <FontAwesome5.Button name='search' onPress={() => handleLocationSlider(null)} style={{width: '100%'}}>
+            Where are you going?
+          </FontAwesome5.Button>
+          <RecentLocations handleLocationSlider={handleLocationSlider}/>
+          <LocationInputSlider/>
+        </Animated.View>
+      </Animated.View>
     </View>
   );
-
+  //<Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
   
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundViews: {
     flex: 1,
-    flexDirection: "column"
+    flexDirection: "column",
+    zIndex: 2,
+    width: '100%',
+    height: '100%'
+  },
+  parent: {
+    flex: 1,
+    height: '100%',
+    width: '100%'
   },
   animatedBox: {
     justifyContent: 'center',
@@ -131,3 +174,4 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
 });
+

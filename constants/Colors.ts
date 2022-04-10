@@ -28,11 +28,11 @@ export default {
     text: '#fff',
     background: '#90e0ef'
   },
-  rain: {
+  heavyRain: {
     text: '#fff',
     background: '#48cae4'
   },
-  heavyRain: {
+  fog: {
     text: '#fff',
     background: '#00b4d8'
   },
