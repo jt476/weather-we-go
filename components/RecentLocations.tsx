@@ -35,7 +35,9 @@ export default function LocationInput<LocationInputProps>({handleLocationSlider}
         {previousLocations.map(location => {
           return(
           <View key={location} style={styles.previousLocation}>
-            <FontAwesome5.Button key={location} name='map-pin' onPress={() => handleLocationSlider('location')}>{location}</FontAwesome5.Button>
+            <FontAwesome5.Button key={location} color='#1c2026' name='map-pin' style={{backgroundColor: 'white'}} 
+            onPress={() => handleLocationSlider('location')} solid>
+              {location}</FontAwesome5.Button>
           </View>
         )})}
       </View>

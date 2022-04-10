@@ -3,8 +3,11 @@ import { View } from '../components/Themed';
 import React, { useEffect, useState } from 'react';
 import Colors from '../constants/Colors';
 import LocationInputSlider from '../components/LocationInputSlider';
-import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import RecentLocations from '../components/RecentLocations';
+import axios from 'axios';
+
+const apiKeysBaseUrl = 'https://johnnythompson.co.uk/orchestrator/api-key/';
 
 export default function SplashScreen({ route, navigation } : {route: any, navigation: any}) {
   let defaultAnimations = {
@@ -14,8 +17,6 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     bounciness: 0,
     overshootClamping: true,
   };
-  let delay = 300;
-
   let boxOne = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
   let boxTwo = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
   let boxThree = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
@@ -27,80 +28,96 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let overlayOpacity = new Animated.Value(0);
   let miniLocationInput = new Animated.ValueXY({x:0, y: Dimensions.get('window').height});
 
+  const [googlePlacesApiKey, setGooglePlacesApiKey] = useState();
   useEffect(() => {
+    const getAPIKey = async () => {
+      try {
+        const url = `${apiKeysBaseUrl}google-places`;
+        const response = await axios.get(url).then((response) => response.data);
+        if(response != null)
+          setGooglePlacesApiKey(response);
+      } catch(e) {
+        console.error(e);
+      }
+    }
+    
     Animated.spring(boxOne, {
       ...defaultAnimations,
-      speed: 1,
-      delay: delay*0,
-    }).start();
-    Animated.spring(boxTwo, {
-      ...defaultAnimations,
-      delay: delay*1,
-    }).start();
-    Animated.spring(boxThree, {
-      ...defaultAnimations,
-      delay: delay*2,
-    }).start();
-    Animated.spring(boxFour, {
-      ...defaultAnimations,
-      delay: delay*3,
-    }).start();
-    Animated.spring(boxFive, {
-      ...defaultAnimations,
-      delay: delay*4,
-    }).start();
-    Animated.spring(boxSix, {
-      ...defaultAnimations,
-      delay: delay*5,
-    }).start();
-    Animated.spring(boxSeven, {
-      ...defaultAnimations,
-      delay: delay*6,
     }).start(() => {
-      Animated.timing(
-        overlayOpacity,
-        {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }
-      ).start(() => {
-        Animated.spring(miniLocationInput, {
-          toValue: { x: 0, y: 0 },
-          useNativeDriver: true,
-          speed: 0.1,
-          bounciness: 0,
-          overshootClamping: true,
-        }).start()
+      Animated.spring(boxTwo, {
+        ...defaultAnimations,
+      }).start(() => {
+        Animated.spring(boxThree, {
+          ...defaultAnimations,
+        }).start(() => {
+          Animated.spring(boxFour, {
+            ...defaultAnimations,
+          }).start(() => {
+            Animated.spring(boxFive, {
+              ...defaultAnimations,
+            }).start(() => {
+              Animated.spring(boxSix, {
+                ...defaultAnimations,
+              }).start(() => {
+                Animated.spring(boxSeven, {
+                  ...defaultAnimations,
+                }).start(() => {
+                  Animated.timing(
+                    overlayOpacity,
+                    {
+                      toValue: 1,
+                      duration: 1000,
+                      useNativeDriver: true,
+                    }
+                  ).start(() => {
+                    Animated.spring(miniLocationInput, {
+                      toValue: { x: 0, y: 0 },
+                      useNativeDriver: true,
+                      speed: 0.1,
+                      bounciness: 0,
+                      overshootClamping: true,
+                    }).start(() => {
+                      getAPIKey();
+                    })
+                  });
+                });
+              });
+            });
+          });
+        });
       });
     });
   }, []);
 
   const handleLocationSlider = (location: any):void => {
-    console.log("yep "+location);
+    navigation.navigate("SetJourneyScreen", {
+      ...route.params,
+      googlePlacesApiKey: googlePlacesApiKey,
+      destination: location,
+    });
   };
 
   return (
     <View style={styles.backgroundViews}>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.sun.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.snow.background,
           transform: [{ translateX: boxOne.x }, { translateY: boxOne.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.cloud.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background,
           transform: [{ translateX: boxTwo.x }, { translateY: boxTwo.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.lightRain.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.fog.background,
           transform: [{ translateX: boxThree.x }, { translateY: boxThree.y }]
         }}/>
       <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background,
           transform: [{ translateX: boxFour.x }, { translateY: boxFour.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.fog.background, 
+      <Animated.View style={{flex: 1, backgroundColor: Colors.lightRain.background, 
           transform: [{ translateX: boxFive.x }, { translateY: boxFive.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.cloud.background,
         transform: [{ translateX: boxSix.x }, { translateY: boxSix.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.snow.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.sun.background,
           transform: [{ translateX: boxSeven.x }, { translateY: boxSeven.y }]
       }}/>
       <Animated.View style={{
@@ -126,8 +143,8 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           backgroundColor: '#979dac',
           width: '100%',
           height: '20%',
-          borderTopLeftRadius: 15,
-          borderTopRightRadius: 15,
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
           shadowColor: "#000",
           shadowOffset: {
             width: 0,
@@ -140,16 +157,20 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           padding: 20,
           flex: 10, 
           transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
-          <FontAwesome5.Button name='search' onPress={() => handleLocationSlider(null)} style={{width: '100%'}}>
-            Where are you going?
-          </FontAwesome5.Button>
-          <RecentLocations handleLocationSlider={handleLocationSlider}/>
-          <LocationInputSlider/>
+          <View style={{backgroundColor: 'none', justifyContent: 'center'}}>
+            <FontAwesome5.Button name='search' color='#1c2026' 
+            onPress={() => handleLocationSlider(null)} style={{backgroundColor: 'white'}}
+            light>
+              Where are you going?
+            </FontAwesome5.Button>
+            <RecentLocations handleLocationSlider={handleLocationSlider}/>
+            <LocationInputSlider/>
+          </View>
         </Animated.View>
       </Animated.View>
     </View>
   );
-  //<Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
+  //<Button title="Let's Go!" onPress={() => }/>
   
 }
 
