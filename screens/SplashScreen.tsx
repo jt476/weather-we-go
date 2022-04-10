@@ -11,7 +11,6 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     bounciness: 0,
     overshootClamping: true,
   };
-  const [isLoaded, setIsLoaded] = useState(false);
   let delay = 300;
 
   let boxOne = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
@@ -22,44 +21,58 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let boxSix = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
   let boxSeven = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
 
+  let logoOpacity = new Animated.Value(0);
+  let buttonOpacity = new Animated.Value(0);
+
   useEffect(() => {
-    if(!isLoaded) {
-      console.log("not loaded!");
-      Animated.spring(boxOne, {
-        ...defaultAnimations,
-        speed: 1,
-        delay: delay*0,
-      }).start();
-      Animated.spring(boxTwo, {
-        ...defaultAnimations,
-        delay: delay*1,
-      }).start();
-      Animated.spring(boxThree, {
-        ...defaultAnimations,
-        delay: delay*2,
-      }).start();
-      Animated.spring(boxFour, {
-        ...defaultAnimations,
-        delay: delay*3,
-      }).start();
-      Animated.spring(boxFive, {
-        ...defaultAnimations,
-        delay: delay*4,
-      }).start();
-      Animated.spring(boxSix, {
-        ...defaultAnimations,
-        delay: delay*5,
-      }).start();
-      Animated.spring(boxSeven, {
-        ...defaultAnimations,
-        delay: delay*6,
-      }).start()
-      setIsLoaded(true);
-    }
-    else {
-      console.log("loaded!");
-    }
-  }, [isLoaded]);
+    Animated.spring(boxOne, {
+      ...defaultAnimations,
+      speed: 1,
+      delay: delay*0,
+    }).start();
+    Animated.spring(boxTwo, {
+      ...defaultAnimations,
+      delay: delay*1,
+    }).start();
+    Animated.spring(boxThree, {
+      ...defaultAnimations,
+      delay: delay*2,
+    }).start();
+    Animated.spring(boxFour, {
+      ...defaultAnimations,
+      delay: delay*3,
+    }).start();
+    Animated.spring(boxFive, {
+      ...defaultAnimations,
+      delay: delay*4,
+    }).start();
+    Animated.spring(boxSix, {
+      ...defaultAnimations,
+      delay: delay*5,
+    }).start();
+    Animated.spring(boxSeven, {
+      ...defaultAnimations,
+      delay: delay*6,
+    }).start()
+    Animated.timing(
+      logoOpacity,
+      {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: false,
+        delay: delay * 7
+      }
+    ).start();
+    Animated.timing(
+      buttonOpacity,
+      {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: false,
+        delay: delay * 7
+      }
+    ).start();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -70,7 +83,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           transform: [{ translateX: boxTwo.x }, { translateY: boxTwo.y }]
         }}/>
       <Animated.View style={{justifyContent: 'center', alignItems: 'center', overflow: 'visible', paddingLeft: 20, paddingRight: 20,
-          flex: 1, backgroundColor: Colors.lightRain.background,
+          flex: 1, backgroundColor: Colors.lightRain.background, zIndex: 2,
           transform: [{ translateX: boxThree.x }, { translateY: boxThree.y }]
         }}>
         <Animated.Image source={require('../assets/images/logo_outlined.png')} style={{
@@ -79,7 +92,8 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           maxHeight: 535,
           maxWidth: 365,
           marginLeft: 50,
-          marginRight: 50
+          marginRight: 50,
+          opacity: logoOpacity,
         }} />
       </Animated.View>
       <Animated.View style={{flex: 1, backgroundColor: Colors.rain.background,
@@ -88,10 +102,12 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
       <Animated.View style={{flex: 1, backgroundColor: Colors.heavyRain.background, 
           transform: [{ translateX: boxFive.x }, { translateY: boxFive.y }]
         }}/>
-      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background,
+      <Animated.View style={{flex: 1, backgroundColor: Colors.thunder.background, justifyContent: 'center', alignItems: 'center',
         transform: [{ translateX: boxSix.x }, { translateY: boxSix.y }]
         }}>
-        
+        <Animated.View style={{opacity: buttonOpacity, width: 100}}>
+          <Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
+        </Animated.View>
       </Animated.View>
       <Animated.View style={{flex: 1, backgroundColor: Colors.snow.background,
           transform: [{ translateX: boxSeven.x }, { translateY: boxSeven.y }]
@@ -99,9 +115,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     </View>
   );
 
-  //<View style={styles.animatedBox}>
-  //<Button title="Let's Go!" onPress={() => navigation.navigate("SetStartScreen")}/>
-  //</View>
+  
 }
 
 const styles = StyleSheet.create({
