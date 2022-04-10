@@ -1,16 +1,17 @@
 import { Animated, Button, Dimensions, StyleSheet, Image } from 'react-native';
 import { View } from '../components/Themed';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Colors from '../constants/Colors';
 
 export default function SplashScreen({ route, navigation } : {route: any, navigation: any}) {
   let defaultAnimations = {
     toValue: { x: 0, y: 0 },
     useNativeDriver: false,
-    speed: 1,
+    speed: 0.1,
     bounciness: 0,
     overshootClamping: true,
   };
+  const [isLoaded, setIsLoaded] = useState(false);
   let delay = 300;
 
   let boxOne = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
@@ -22,35 +23,43 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let boxSeven = new Animated.ValueXY({x: 0, y: Dimensions.get('window').height});
 
   useEffect(() => {
-    Animated.spring(boxOne, {
-      ...defaultAnimations,
-      delay: delay*0,
-    }).start();
-    Animated.spring(boxTwo, {
-      ...defaultAnimations,
-      delay: delay*1,
-    }).start();
-    Animated.spring(boxThree, {
-      ...defaultAnimations,
-      delay: delay*2,
-    }).start();
-    Animated.spring(boxFour, {
-      ...defaultAnimations,
-      delay: delay*3,
-    }).start();
-    Animated.spring(boxFive, {
-      ...defaultAnimations,
-      delay: delay*4,
-    }).start();
-    Animated.spring(boxSix, {
-      ...defaultAnimations,
-      delay: delay*5,
-    }).start();
-    Animated.spring(boxSeven, {
-      ...defaultAnimations,
-      delay: delay*6,
-    }).start();
-  }, []);
+    if(!isLoaded) {
+      console.log("not loaded!");
+      Animated.spring(boxOne, {
+        ...defaultAnimations,
+        speed: 1,
+        delay: delay*0,
+      }).start();
+      Animated.spring(boxTwo, {
+        ...defaultAnimations,
+        delay: delay*1,
+      }).start();
+      Animated.spring(boxThree, {
+        ...defaultAnimations,
+        delay: delay*2,
+      }).start();
+      Animated.spring(boxFour, {
+        ...defaultAnimations,
+        delay: delay*3,
+      }).start();
+      Animated.spring(boxFive, {
+        ...defaultAnimations,
+        delay: delay*4,
+      }).start();
+      Animated.spring(boxSix, {
+        ...defaultAnimations,
+        delay: delay*5,
+      }).start();
+      Animated.spring(boxSeven, {
+        ...defaultAnimations,
+        delay: delay*6,
+      }).start()
+      setIsLoaded(true);
+    }
+    else {
+      console.log("loaded!");
+    }
+  }, [isLoaded]);
 
   return (
     <View style={styles.container}>
@@ -64,7 +73,14 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           flex: 1, backgroundColor: Colors.lightRain.background,
           transform: [{ translateX: boxThree.x }, { translateY: boxThree.y }]
         }}>
-        <Image source={require('../assets/images/logo_outlined.png')} style={styles.image} />
+        <Animated.Image source={require('../assets/images/logo_outlined.png')} style={{
+          height: 535,
+          width: 365,
+          maxHeight: 535,
+          maxWidth: 365,
+          marginLeft: 50,
+          marginRight: 50
+        }} />
       </Animated.View>
       <Animated.View style={{flex: 1, backgroundColor: Colors.rain.background,
           transform: [{ translateX: boxFour.x }, { translateY: boxFour.y }]
@@ -99,11 +115,5 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginTop: 100,
-  },
-  image: {
-    height: 500,
-    width: '100%',
-    marginLeft: 50,
-    marginRight: 50,
   },
 });
