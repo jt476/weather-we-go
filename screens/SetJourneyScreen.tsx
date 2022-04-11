@@ -3,9 +3,12 @@ import { Text, TextInput, View } from '../components/Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { FontAwesome5 } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import RecentLocations from '../components/RecentLocations';
 
 export default function SetJourneyScreen({ route, navigation } : {route: any, navigation: any}) {
+  const [autoComplete, setAutoComplete] = useState(React.createRef());
+
   const useCurrentLoc = (params : any) => {
     (async () => {
       let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
@@ -24,6 +27,20 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
       console.log('i want a result');
     }
   }
+
+  const handlePreviousLocationPress = (location: any):void => {
+    navigation.navigate("SetJourneyScreen", {
+      ...route.params,
+      googlePlacesApiKey: route.params.googlePlacesApiKey,
+      destination: location,
+    });
+  };
+
+  useEffect(() => {
+    if (autoComplete !== null && route.params.destination == null) {
+      autoComplete.current.focus();
+    }
+  }, [autoComplete]);
 
   return (
     <KeyboardAvoidingView
@@ -75,7 +92,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
           </View>
           <View style={{flex:2, width:'100%', justifyContent:'center'}}>
             <GooglePlacesAutocomplete fetchDetails={true}
-              placeholder='placeholder'
+              textInputProps={{
+                ref: autoComplete,
+              }}
+              placeholder=''
               query={{
                 key: route.params.googlePlacesApiKey,
                 language: 'en', 
@@ -98,7 +118,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         </View>
       </View>
       <View style={{height:'80%', width:'100%'}}>
-        <Text>all my history</Text>
+        <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:"/>
       </View>
     </KeyboardAvoidingView>
   );

@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
 import FontAwesome5 from '@expo/vector-icons/build/FontAwesome5';
 
 interface LocationInputProps {
-  handleLocationSlider: (location: string) => void
+  handlePreviousLocationPress: (location: string) => void
 }
 
-export default function LocationInput<LocationInputProps>({handleLocationSlider}) {
+export default function LocationInput<LocationInputProps>({handlePreviousLocationPress, title}) {
   const [previousLocations, setPreviousLocations] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -19,8 +19,7 @@ export default function LocationInput<LocationInputProps>({handleLocationSlider}
         const jsonValue = await AsyncStorage.getItem('@previous_locations')
         if(jsonValue != null) 
           setPreviousLocations(JSON.parse(jsonValue))
-        else
-          setPreviousLocations(['test1','test2']);
+        //else setPreviousLocations(['test1','test2']);
       } catch(e) {
         console.error(e);
       }
@@ -32,11 +31,12 @@ export default function LocationInput<LocationInputProps>({handleLocationSlider}
 
   return (
       <View style={{marginTop: 10, marginBottom: 10, backgroundColor: 'none'}}>
+        {previousLocations.length > 0 ? <Text>{title}</Text> : <View/>}
         {previousLocations.map(location => {
           return(
           <View key={location} style={styles.previousLocation}>
             <FontAwesome5.Button key={location} color='#1c2026' name='map-pin' style={{backgroundColor: 'white'}} 
-            onPress={() => handleLocationSlider('location')} solid>
+            onPress={() => handlePreviousLocationPress('location')} solid>
               {location}</FontAwesome5.Button>
           </View>
         )})}

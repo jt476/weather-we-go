@@ -1,8 +1,7 @@
 import { Animated, Button, Dimensions, StyleSheet, Image } from 'react-native';
-import { View } from '../components/Themed';
+import { View, Text } from '../components/Themed';
 import React, { useEffect, useState } from 'react';
 import Colors from '../constants/Colors';
-import LocationInputSlider from '../components/LocationInputSlider';
 import { FontAwesome5 } from '@expo/vector-icons';
 import RecentLocations from '../components/RecentLocations';
 import axios from 'axios';
@@ -89,7 +88,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     });
   }, []);
 
-  const handleLocationSlider = (location: any):void => {
+  const handlePreviousLocationPress = (location: any):void => {
     navigation.navigate("SetJourneyScreen", {
       ...route.params,
       googlePlacesApiKey: googlePlacesApiKey,
@@ -159,18 +158,16 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
           <View style={{backgroundColor: 'none', justifyContent: 'center'}}>
             <FontAwesome5.Button name='search' color='#1c2026' 
-            onPress={() => handleLocationSlider(null)} style={{backgroundColor: 'white'}}
+            onPress={() => handlePreviousLocationPress(null)} style={{backgroundColor: 'white'}}
             light>
               Where are you going?
             </FontAwesome5.Button>
-            <RecentLocations handleLocationSlider={handleLocationSlider}/>
-            <LocationInputSlider/>
+            <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Quick destinations:"/>
           </View>
         </Animated.View>
       </Animated.View>
     </View>
   );
-  //<Button title="Let's Go!" onPress={() => }/>
   
 }
 
