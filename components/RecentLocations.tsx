@@ -19,7 +19,6 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
         const jsonValue = await AsyncStorage.getItem('@previous_locations')
         if(jsonValue != null) 
           setPreviousLocations(JSON.parse(jsonValue))
-        //else setPreviousLocations(['test1','test2']);
       } catch(e) {
         console.error(e);
       }

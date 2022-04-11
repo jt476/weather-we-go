@@ -5,6 +5,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import RecentLocations from '../components/RecentLocations';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const currentLocationStr = "Current Location";
 
@@ -23,6 +24,40 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
       }
       ref.current.value = currentLocationStr;
     })();
+  }
+
+  const getPreviousLocations = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@previous_locations')
+      if(jsonValue != null) 
+        return (JSON.parse(jsonValue));
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  const storePreviousLocations = async (value: any) => {
+    try {
+      const jsonValue = JSON.stringify(value)
+      await AsyncStorage.setItem('@previous_locations', jsonValue)
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const persistLocations = async () => {
+    let previousLocations = await getPreviousLocations();
+    if(startAutoComplete.current.value !== currentLocationStr && !startAutoComplete.current.value) {
+      previousLocations.push(startCoordinates);
+    }
+    if(endAutoComplete.current.value !== currentLocationStr && !endAutoComplete.current.value) {
+      previousLocations.push(endCoordinates);
+    }
+
+    if(previousLocations.size() > 5) {
+      previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
+    }
+    storePreviousLocations(previousLocations);
   }
 
   const navigateOnwards = () => {
@@ -47,19 +82,22 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
             setEndCoordinates({lat : loc.coords.latitude, lon : loc.coords.longitude });
           }
           
+          persistLocations();
           navigation.navigate("ResultScreen", {
             ...route.params,
             startCoordinates: startCoordinates,
             endCoordinates: endCoordinates,
           });
         })();
+      }
+      else {
+        persistLocations();
+        navigation.navigate("ResultScreen", {
+          ...route.params,
+          startCoordinates: startCoordinates,
+          endCoordinates: endCoordinates,
+        });
       };
-      
-      navigation.navigate("ResultScreen", {
-        ...route.params,
-        startCoordinates: startCoordinates,
-        endCoordinates: endCoordinates,
-      });
     }
   }
 
