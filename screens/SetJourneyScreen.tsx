@@ -3,17 +3,17 @@ import { Text, View } from '../components/Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { FontAwesome5 } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import RecentLocations from '../components/RecentLocations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const currentLocationStr = "Current Location";
 
 export default function SetJourneyScreen({ route, navigation } : {route: any, navigation: any}) {
-  const [startAutoComplete, setStartAutoComplete] = useState(React.createRef());
-  const [endAutoComplete, setEndAutoComplete] = useState(React.createRef());
-  const [startCoordinates, setStartCoordinates] = useState({});
-  const [endCoordinates, setEndCoordinates] = useState({});
+  const startAutoCompleteRef = useRef();
+  const endAutoCompleteRef = useRef();
+  const [startCoordinatesState, setStartCoordinatesState] = useState({});
+  const [endCoordinatesState, setEndCoordinatesState] = useState({});
 
   const useCurrentLoc = (ref : any) => {
     (async () => {
@@ -34,6 +34,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
     } catch(e) {
       console.error(e);
     }
+    return [];
   }
 
   const storePreviousLocations = async (value: any) => {
@@ -45,28 +46,34 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
     }
   }
 
-  const persistLocations = async () => {
-    let previousLocations = await getPreviousLocations();
-    if(startAutoComplete.current.value !== currentLocationStr && !startAutoComplete.current.value) {
-      previousLocations.push(startCoordinates);
+  const persistLocation = async (location : any) => {
+    if(location !== undefined && location !== null) {
+      let previousLocations = await getPreviousLocations();
+      let existingVal = previousLocations.find((i : any) => i.name === location.name);
+      if(existingVal == null) {
+        previousLocations.push(location);
+        if(previousLocations.length > 5) {
+          previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
+        }
+        storePreviousLocations(previousLocations);
+      } else {
+        console.log(location.name + " is already stored!");
+      }
     }
-    if(endAutoComplete.current.value !== currentLocationStr && !endAutoComplete.current.value) {
-      previousLocations.push(endCoordinates);
-    }
-
-    if(previousLocations.size() > 5) {
-      previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
-    }
-    storePreviousLocations(previousLocations);
   }
 
   const navigateOnwards = () => {
-    if(!startAutoComplete.current.value)
-      startAutoComplete.current.focus();
-    else if(!endAutoComplete.current.value)
-      endAutoComplete.current.focus();
+    let startValue = startAutoCompleteRef.current.value;
+    let endValue = endAutoCompleteRef.current.value;
+    let startCoordinates = startCoordinatesState;
+    let endCoordinates = endCoordinatesState;
+
+    if(!startValue)
+      startAutoCompleteRef.current?.focus();
+    else if(!endValue)
+      endAutoCompleteRef.current?.focus();
     else {
-      if(startAutoComplete.current.value === currentLocationStr || endAutoComplete.current.value === currentLocationStr) {
+      if(startValue === currentLocationStr || endValue === currentLocationStr) {
         (async () => {
           let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
           if (status !== 'granted') {
@@ -75,14 +82,17 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
           }
 
           let loc = await ExpoLocation.getCurrentPositionAsync({accuracy: 1});
-          if(startAutoComplete.current.value === currentLocationStr) {
-            setStartCoordinates({lat : loc.coords.latitude, lon : loc.coords.longitude });
-          }
-          if(endAutoComplete.current.value === currentLocationStr) {
-            setEndCoordinates({lat : loc.coords.latitude, lon : loc.coords.longitude });
-          }
-          
-          persistLocations();
+          if(startValue === currentLocationStr) {
+            startCoordinates = {lat: loc.coords.latitude, lon: loc.coords.longitude, name: currentLocationStr };
+          } else {
+            persistLocation(startCoordinates);
+          };
+          if(endValue === currentLocationStr) {
+            endCoordinates = {lat: loc.coords.latitude, lon: loc.coords.longitude, name: currentLocationStr };
+          } else {
+            persistLocation(endCoordinates);
+          };
+
           navigation.navigate("ResultScreen", {
             ...route.params,
             startCoordinates: startCoordinates,
@@ -91,7 +101,8 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         })();
       }
       else {
-        persistLocations();
+        persistLocation(startCoordinates);
+        persistLocation(endCoordinates);
         navigation.navigate("ResultScreen", {
           ...route.params,
           startCoordinates: startCoordinates,
@@ -110,11 +121,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   };
 
   useEffect(() => {
-    startAutoComplete.current.defaultValue = currentLocationStr;
-    if (startAutoComplete !== null && route.params.destination == null) {
-      endAutoComplete.current.focus();
+    if (startAutoCompleteRef !== null && route.params.destination == null) {
+      endAutoCompleteRef.current?.focus();
     } else {
-      endAutoComplete.current.value = route.params.destination;
+      endAutoCompleteRef.current?.setValue(route.params.destination);
     }
   }, []);
 
@@ -144,8 +154,9 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                       borderTopLeftRadius: 5,
                     },
                   }}
+                  fetchDetails={true}
                   textInputProps={{
-                    ref: startAutoComplete,
+                    ref: startAutoCompleteRef,
                   }}
                   placeholder=""
                   query={{
@@ -154,10 +165,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}
                   onPress={(data : any, details = null) => {
                     if(details !== null) {
-                      setStartCoordinates({
+                      setStartCoordinatesState({
                         lat: details.geometry.location.lat, 
                         lon: details.geometry.location.lng,
-                        loc: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
+                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
                       });
                       navigateOnwards();
                     }
@@ -179,7 +190,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   borderBottomRightRadius: 5, 
                   borderTopRightRadius: 5
                   }}>
-                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(startAutoComplete)}/>
+                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(startAutoCompleteRef)}/>
                 </View>
               </View>
           </View>
@@ -206,7 +217,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}
                   fetchDetails={true}
                   textInputProps={{
-                    ref: endAutoComplete,
+                    ref: endAutoCompleteRef,
                   }}
                   placeholder='Please enter a destination'
                   query={{
@@ -215,10 +226,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}
                   onPress={(data : any, details = null) => {
                     if(details !== null) {
-                      setEndCoordinates({
+                      setEndCoordinatesState({
                         lat: details.geometry.location.lat, 
                         lon: details.geometry.location.lng,
-                        loc: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
+                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
                       });
                       navigateOnwards();
                     }
@@ -240,7 +251,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   borderBottomRightRadius: 5, 
                   borderTopRightRadius: 5
                   }}>
-                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(endAutoComplete)}/>
+                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(endAutoCompleteRef)}/>
                 </View>
               </View>
           </View>

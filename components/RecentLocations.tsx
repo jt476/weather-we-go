@@ -19,6 +19,7 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
         const jsonValue = await AsyncStorage.getItem('@previous_locations')
         if(jsonValue != null) 
           setPreviousLocations(JSON.parse(jsonValue))
+        console.log(jsonValue);
       } catch(e) {
         console.error(e);
       }
@@ -33,10 +34,10 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
         {previousLocations.length > 0 ? <Text>{title}</Text> : <View/>}
         {previousLocations.map(location => {
           return(
-          <View key={location} style={styles.previousLocation}>
-            <FontAwesome5.Button key={location} color='#1c2026' name='map-pin' style={{backgroundColor: 'white'}} 
-            onPress={() => handlePreviousLocationPress('location')} solid>
-              {location}</FontAwesome5.Button>
+          <View key={location.name} style={styles.previousLocation}>
+            <FontAwesome5.Button key={location.name} color='#1c2026' name='map-pin' style={{backgroundColor: 'white'}} 
+            onPress={() => handlePreviousLocationPress(location)} solid>
+              {location.name}</FontAwesome5.Button>
           </View>
         )})}
       </View>
