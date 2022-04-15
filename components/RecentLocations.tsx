@@ -19,7 +19,7 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
         const jsonValue = await AsyncStorage.getItem('@previous_locations')
         if(jsonValue != null) 
           setPreviousLocations(JSON.parse(jsonValue))
-        console.log(jsonValue);
+        //else setPreviousLocations([{lat: 1, lon: 1, name: 'test1'},{lat: 1, lon: 1, name: 'test2'},{lat: 1, lon: 1, name: 'test3'}])
       } catch(e) {
         console.error(e);
       }
@@ -47,7 +47,7 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
 const styles = StyleSheet.create({
   previousLocation: {
     marginTop:5, 
-    backgroundColor: 'none',
+    backgroundColor: 'transparent',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

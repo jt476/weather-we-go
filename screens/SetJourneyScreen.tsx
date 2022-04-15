@@ -52,8 +52,8 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
       let existingVal = previousLocations.find((i : any) => i.name === location.name);
       if(existingVal == null) {
         previousLocations.push(location);
-        if(previousLocations.length > 5) {
-          previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
+        if(previousLocations.length > 3) {
+          previousLocations = previousLocations.slice(Math.max(previousLocations.length - 3, 0))
         }
         storePreviousLocations(previousLocations);
       } else {
@@ -257,10 +257,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
           </View>
         </View>
       </View>
-      <View>
+      <View style={{padding: 20}}>
         <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:"/>
       </View>
-      <View style={{padding: 10}}>
+      <View style={{padding: 20}}>
         <Button title="Go" onPress={() => navigateOnwards()}/>
       </View>
     </KeyboardAvoidingView>

@@ -1,4 +1,4 @@
-import { Animated, Button, Dimensions, StyleSheet, Image } from 'react-native';
+import { Animated, Button, Dimensions, StyleSheet, Image, ScrollView } from 'react-native';
 import { View, Text } from '../components/Themed';
 import React, { useEffect, useState } from 'react';
 import Colors from '../constants/Colors';
@@ -39,6 +39,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
         console.error(e);
       }
     }
+    //getAPIKey();
     
     Animated.spring(boxOne, {
       ...defaultAnimations,
@@ -76,7 +77,6 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
                       bounciness: 0,
                       overshootClamping: true,
                     }).start(() => {
-                      getAPIKey();
                     })
                   });
                 });
@@ -130,20 +130,19 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           flexDirection: 'column'
         }}>
         <Image source={require('../assets/images/logo_dark_outlined_square.png')} style={{
-          height: '90%',
           width: '90%',
           maxHeight: 535,
           maxWidth: 535,
           resizeMode: "contain",
+          marginTop: 50,
           marginBottom: 50,
-          flex: 1,
+          flex: 3,
         }} />
         <Animated.View style={{
           backgroundColor: '#979dac',
           width: '100%',
-          height: '20%',
-          borderTopLeftRadius: 25,
-          borderTopRightRadius: 25,
+          borderTopLeftRadius: 15,
+          borderTopRightRadius: 15,
           shadowColor: "#000",
           shadowOffset: {
             width: 0,
@@ -153,8 +152,8 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           shadowRadius: 3.84,
           elevation: 5,
           justifyContent: 'center',
-          padding: 20,
-          flex: 10, 
+          padding: 10,
+          flex: 1, 
           transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
           <View style={{backgroundColor: 'none', justifyContent: 'center'}}>
             <FontAwesome5.Button name='search' color='#1c2026' 
