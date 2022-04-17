@@ -20,8 +20,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "config": {
-        "googleMapsApiKey": "AIzaSyC-W10dPkAwJ8O3oAr9keKA0pri511Y9M0"
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Upon request, this app uses your current location to determine where you are starting/finishing your journey."
       }
     },
     "android": {

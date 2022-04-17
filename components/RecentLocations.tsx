@@ -9,7 +9,7 @@ interface LocationInputProps {
   handlePreviousLocationPress: (location: string) => void
 }
 
-export default function LocationInput<LocationInputProps>({handlePreviousLocationPress, title}) {
+export default function LocationInput<LocationInputProps>({handlePreviousLocationPress, title, numToDisplay}) {
   const [previousLocations, setPreviousLocations] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -17,8 +17,9 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
     const getData = async () => {
       try {
         const jsonValue = await AsyncStorage.getItem('@previous_locations')
-        if(jsonValue != null) 
-          setPreviousLocations(JSON.parse(jsonValue))
+        if(jsonValue != null) {
+          setPreviousLocations(JSON.parse(jsonValue));
+        }
         //else setPreviousLocations([{lat: 1, lon: 1, name: 'test1'},{lat: 1, lon: 1, name: 'test2'},{lat: 1, lon: 1, name: 'test3'}])
       } catch(e) {
         console.error(e);
@@ -32,12 +33,12 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
   return (
       <View style={{marginTop: 10, marginBottom: 10, backgroundColor: 'none'}}>
         {previousLocations.length > 0 ? <Text>{title}</Text> : <View/>}
-        {previousLocations.map(location => {
+        {previousLocations.slice(Math.max(previousLocations.length - numToDisplay, 0)).map(location => {
           return(
           <View key={location.name} style={styles.previousLocation}>
             <FontAwesome5.Button key={location.name} color='#1c2026' name='map-pin' style={{backgroundColor: 'white'}} 
             onPress={() => handlePreviousLocationPress(location)} solid>
-              {location.name}</FontAwesome5.Button>
+              {location.description !== undefined ? location.description : location.name}</FontAwesome5.Button>
           </View>
         )})}
       </View>

@@ -9,9 +9,6 @@ let coordinates: any[] = [];
 
 export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
   console.log(route.params);
-  return <View></View>;
-  if(coordinates.length < 1)
-    coordinates = getAllCoordinates(route.params);
   const [weatherData, setWeatherData] = useState<any[]>([]);
 
   useEffect(() => {

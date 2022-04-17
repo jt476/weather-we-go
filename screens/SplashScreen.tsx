@@ -27,19 +27,19 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let overlayOpacity = new Animated.Value(0);
   let miniLocationInput = new Animated.ValueXY({x:0, y: Dimensions.get('window').height});
 
-  const [googlePlacesApiKey, setGooglePlacesApiKey] = useState();
+  let googlePlacesApiKey = "";
   useEffect(() => {
     const getAPIKey = async () => {
       try {
         const url = `${apiKeysBaseUrl}google-places`;
         const response = await axios.get(url).then((response) => response.data);
         if(response != null)
-          setGooglePlacesApiKey(response);
+          googlePlacesApiKey = response;
       } catch(e) {
         console.error(e);
       }
     }
-    //getAPIKey();
+    getAPIKey();
     
     Animated.spring(boxOne, {
       ...defaultAnimations,
@@ -92,7 +92,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
     navigation.navigate("SetJourneyScreen", {
       ...route.params,
       googlePlacesApiKey: googlePlacesApiKey,
-      destination: location,
+      endCoordinates: location,
     });
   };
 
@@ -161,7 +161,7 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
             light>
               Where are you going?
             </FontAwesome5.Button>
-            <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Quick destinations:"/>
+            <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Quick destinations:" numToDisplay={3}/>
           </View>
         </Animated.View>
       </Animated.View>

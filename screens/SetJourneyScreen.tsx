@@ -1,4 +1,4 @@
-import { StyleSheet, KeyboardAvoidingView, Platform, Button } from 'react-native';
+import { StyleSheet, KeyboardAvoidingView, Platform, Button, Keyboard } from 'react-native';
 import { Text, View } from '../components/Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -12,17 +12,20 @@ const currentLocationStr = "Current Location";
 export default function SetJourneyScreen({ route, navigation } : {route: any, navigation: any}) {
   const startAutoCompleteRef = useRef();
   const endAutoCompleteRef = useRef();
+  const [startAutoCompleteValue, setStartAutoCompleteValue] = useState<String>();
+  const [endAutoCompleteValue, setEndAutoCompleteValue] = useState<String>();
   const [startCoordinatesState, setStartCoordinatesState] = useState({});
   const [endCoordinatesState, setEndCoordinatesState] = useState({});
+  const [lastFocused, setLastFocused] = useState(endAutoCompleteRef);
 
-  const useCurrentLoc = (ref : any) => {
+  const useCurrentLoc = (f : any) => {
     (async () => {
       let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         alert('Permission to access location was denied');
         return;
       }
-      ref.current.value = currentLocationStr;
+      f(currentLocationStr);
     })();
   }
 
@@ -39,7 +42,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
 
   const storePreviousLocations = async (value: any) => {
     try {
-      const jsonValue = JSON.stringify(value)
+      const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem('@previous_locations', jsonValue)
     } catch (e) {
       console.error(e);
@@ -47,31 +50,32 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   }
 
   const persistLocation = async (location : any) => {
-    if(location !== undefined && location !== null) {
+    if(location !== undefined && location !== null && location && location?.name !== undefined) {
       let previousLocations = await getPreviousLocations();
-      let existingVal = previousLocations.find((i : any) => i.name === location.name);
-      if(existingVal == null) {
-        previousLocations.push(location);
-        if(previousLocations.length > 3) {
-          previousLocations = previousLocations.slice(Math.max(previousLocations.length - 3, 0))
-        }
-        storePreviousLocations(previousLocations);
-      } else {
-        console.log(location.name + " is already stored!");
+      previousLocations = previousLocations.filter((i : any) => i?.name !== undefined);
+      previousLocations = previousLocations.filter((i : any) => i.name !== location.name);
+      previousLocations.push(location);
+      if(previousLocations.length > 5) {
+        previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
       }
+      storePreviousLocations(previousLocations);
     }
   }
 
   const navigateOnwards = () => {
-    let startValue = startAutoCompleteRef.current.value;
-    let endValue = endAutoCompleteRef.current.value;
+    let startValue = startAutoCompleteValue;
+    let endValue = endAutoCompleteValue;
     let startCoordinates = startCoordinatesState;
     let endCoordinates = endCoordinatesState;
 
-    if(!startValue)
+    if(startValue !== currentLocationStr && (!startCoordinates || startCoordinates === undefined || startCoordinates?.lat === undefined)) {
       startAutoCompleteRef.current?.focus();
-    else if(!endValue)
+      return;
+    }
+    else if(endValue !== currentLocationStr && (!endCoordinates || endCoordinates === undefined || endCoordinates?.lat === undefined)) {
       endAutoCompleteRef.current?.focus();
+      return;
+    }
     else {
       if(startValue === currentLocationStr || endValue === currentLocationStr) {
         (async () => {
@@ -113,27 +117,33 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   }
 
   const handlePreviousLocationPress = (location: any):void => {
-    navigation.navigate("SetJourneyScreen", {
-      ...route.params,
-      googlePlacesApiKey: route.params.googlePlacesApiKey,
-      destination: location,
-    });
+    Keyboard.dismiss();
+    if(lastFocused === startAutoCompleteRef) {
+      setStartCoordinatesState(location);
+      setStartAutoCompleteValue(location.name);
+    } else if(lastFocused === endAutoCompleteRef) {
+      setEndCoordinatesState(location);
+      setEndAutoCompleteValue(location.name);
+    } else {
+      console.error("unknown ref:" + lastFocused);
+    }
   };
 
   useEffect(() => {
-    if (startAutoCompleteRef !== null && route.params.destination == null) {
+    if (startAutoCompleteRef !== null && route.params.endCoordinates == null) {
       endAutoCompleteRef.current?.focus();
     } else {
-      endAutoCompleteRef.current?.setValue(route.params.destination);
+      setStartAutoCompleteValue(currentLocationStr);
+      setEndAutoCompleteValue(route.params.endCoordinates.name);
+      setEndCoordinatesState(route.params.endCoordinates);
     }
   }, []);
 
   return (
-    <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View
         style={styles.keyboardContainer}
       >
-      <View>
+      <View style={{ flexDirection: 'column', justifyContent: 'flex-start'}}>
         {/* Start Input */}
         <View style={styles.locationInputContainer}>
           <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
@@ -146,17 +156,29 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
             <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
               <View style={{flex:6, height:'100%', justifyContent:'center'}}>
                 <GooglePlacesAutocomplete 
-                  currentLocation={true} 
                   styles={{
                     textInput: {
                       borderRadius: 0,
                       borderBottomLeftRadius: 5,
                       borderTopLeftRadius: 5,
                     },
+                    listView: {
+                      position: 'absolute',
+                      width: '100%',
+                      paddingTop: 40,
+                      elevation: 9,
+                      zIndex: 9,
+                    }
                   }}
                   fetchDetails={true}
                   textInputProps={{
+                    onTextInput: () => {
+                      setEndCoordinatesState({});
+                    },
+                    onFocus: () => {setLastFocused(startAutoCompleteRef)},
                     ref: startAutoCompleteRef,
+                    value: startAutoCompleteValue,
+                    onChangeText: setStartAutoCompleteValue,
                   }}
                   placeholder=""
                   query={{
@@ -165,12 +187,14 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}
                   onPress={(data : any, details = null) => {
                     if(details !== null) {
+                      setStartAutoCompleteValue(data.description);
                       setStartCoordinatesState({
                         lat: details.geometry.location.lat, 
                         lon: details.geometry.location.lng,
-                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
+                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
+                        description: data.description
                       });
-                      navigateOnwards();
+                      //navigateOnwards();
                     }
                   }}
                   onFail={(error) => console.error(error)}
@@ -181,23 +205,29 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}/>
                 </View>
                 <View style={{flex:1, 
-                  height: 45, 
+                  height: 44, 
                   justifyContent:'center',
                   alignItems: 'center',
                   backgroundColor: '#007aff',
                   borderBottomLeftRadius: 0,
                   borderTopLeftRadius: 0,
                   borderBottomRightRadius: 5, 
-                  borderTopRightRadius: 5
+                  borderTopRightRadius: 5,
+                  alignContent: 'center'
                   }}>
-                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(startAutoCompleteRef)}/>
+                  <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setStartAutoCompleteValue)}/>
                 </View>
               </View>
           </View>
         </View>
-        
         {/* End Input */}
-        <View style={styles.locationInputContainer}>
+        <View style={{flexDirection: 'row',
+          width:'100%',
+          padding: 10,
+          paddingRight: 20,
+          alignItems: 'flex-start',
+          zIndex: -10,
+          elevation: -10,}}>
           <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
             <FontAwesome5 name="flag-checkered" size={24} color="white"/>
           </View>
@@ -214,24 +244,41 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                       borderBottomLeftRadius: 5,
                       borderTopLeftRadius: 5,
                     },
+                    listView: {
+                      position: 'absolute',
+                      paddingTop: 40,
+                      width: '100%',
+                      elevation: 8,
+                      zIndex: 8,
+                    }
                   }}
                   fetchDetails={true}
                   textInputProps={{
+                    onTextInput: () => {
+                      setEndCoordinatesState({});
+                    },
+                    onFocus: () => {setLastFocused(endAutoCompleteRef)},
                     ref: endAutoCompleteRef,
+                    value: endAutoCompleteValue,
+                    onChangeText: setEndAutoCompleteValue,
                   }}
-                  placeholder='Please enter a destination'
+                  placeholder=''
                   query={{
                     key: route.params.googlePlacesApiKey,
                     language: 'en', 
                   }}
                   onPress={(data : any, details = null) => {
                     if(details !== null) {
+                      setEndAutoCompleteValue(data.description);
                       setEndCoordinatesState({
                         lat: details.geometry.location.lat, 
                         lon: details.geometry.location.lng,
-                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description
+                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
+                        description: data.description
                       });
-                      navigateOnwards();
+                      //navigateOnwards();
+                    } else {
+                      setEndAutoCompleteValue('');
                     }
                   }}
                   onFail={(error) => console.error(error)}
@@ -242,7 +289,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   }}/>
                 </View>
                 <View style={{flex:1, 
-                  height: 45, 
+                  height: 44, 
                   justifyContent:'center',
                   alignItems: 'center',
                   backgroundColor: '#007aff',
@@ -251,39 +298,40 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                   borderBottomRightRadius: 5, 
                   borderTopRightRadius: 5
                   }}>
-                  <FontAwesome5.Button name="location-arrow" style={styles.locationButton} onPress={() => useCurrentLoc(endAutoCompleteRef)}/>
+                  <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setEndAutoCompleteValue)}/>
                 </View>
               </View>
           </View>
         </View>
       </View>
-      <View style={{padding: 20}}>
-        <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:"/>
+      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+      <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
+        <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
       </View>
-      <View style={{padding: 20}}>
+      <View style={{padding: 20, zIndex: -9, elevation: -9}}>
         <Button title="Go" onPress={() => navigateOnwards()}/>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
-
-  // Add previous locations
 }
 
 const styles = StyleSheet.create({
   locationInputContainer: {
-    flex: 1,
     flexDirection: 'row',
     width:'100%',
-    height:'10%',
     padding: 10,
     paddingRight: 20,
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    zIndex: -9,
+    elevation: -9,
   },
   locationTextInputContainer: {
     flex: 6,
     width: '100%',
     height: 80,
-    flexDirection: 'column'
+    flexDirection: 'column', 
+    zIndex: -9,
+    elevation: -9,
   },
   getStartedContainer: {
     alignItems: 'center',
@@ -292,19 +340,25 @@ const styles = StyleSheet.create({
   separator: {
     marginVertical: 30,
     height: 1,
-    width: '80%',
+    width: '100%',
   },
   locationButton: {
-    height: 45,
+    height: 44,
     borderBottomLeftRadius: 0,
     borderTopLeftRadius: 0,
     borderBottomRightRadius: 5, 
     borderTopRightRadius: 5,
-    color: 'black'
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignContent: 'center',
+    zIndex: -9,
+    elevation: -9,
   },
   keyboardContainer: {
     flex: 1,
     flexDirection: 'column',
+    height: '100%',
+    width: '100%'
   },
 });
 
