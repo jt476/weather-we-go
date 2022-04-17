@@ -1,4 +1,4 @@
-import { StyleSheet, KeyboardAvoidingView, Platform, Button, Keyboard } from 'react-native';
+import { StyleSheet, KeyboardAvoidingView, Platform, Button, Keyboard, ScrollView } from 'react-native';
 import { Text, View } from '../components/Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -132,6 +132,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
 
   useEffect(() => {
     if (startAutoCompleteRef !== null && route.params.endCoordinates == null) {
+      setStartAutoCompleteValue(currentLocationStr);
       endAutoCompleteRef.current?.focus();
     } else {
       setStartAutoCompleteValue(currentLocationStr);
@@ -306,12 +307,15 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         </View>
       </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
-        <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
-      </View>
-      <View style={{padding: 20, zIndex: -9, elevation: -9}}>
-        <Button title="Go" onPress={() => navigateOnwards()}/>
-      </View>
+      <ScrollView style={{}}>
+        <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
+          <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
+        </View>
+        <View style={{padding: 20, zIndex: -9, elevation: -9}}>
+          <Button title="Go" onPress={() => navigateOnwards()}/>
+        </View>
+      </ScrollView>
+
     </View>
   );
 }
@@ -339,7 +343,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 50,
   },
   separator: {
-    marginVertical: 30,
+    marginVertical: 5,
     height: 1,
     width: '100%',
   },

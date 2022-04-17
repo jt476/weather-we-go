@@ -23,6 +23,7 @@
     "@react-navigation/native": "^6.0.2",
     "@react-navigation/native-stack": "^6.1.0",
     "axios": "^0.26.1",
+    "country-data": "^0.0.31",
     "expo": "~44.0.0",
     "expo-asset": "~8.4.4",
     "expo-constants": "~13.0.0",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
+    "@types/country-data": "^0.0.2",
     "@types/react": "~17.0.21",
     "@types/react-native": "~0.64.12",
     "jest": "^26.6.3",

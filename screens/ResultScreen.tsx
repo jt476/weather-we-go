@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import WeatherReport from '../components/WeatherReport';
 import { Text, View } from '../components/Themed';
 import axios from 'axios';
@@ -8,10 +8,13 @@ const weatherBaseUrl = "https://johnnythompson.co.uk/orchestrator/weather";
 let coordinates: any[] = [];
 
 export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
-  console.log(route.params);
-  if(coordinates.length < 1)
-    coordinates = getAllCoordinates(route.params.startCoordinates, route.params.endCoordinates);
+  const [coordinates, setCoordinates] = useState<any[]>([]);
   const [weatherData, setWeatherData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if(coordinates.length < 1)
+      setCoordinates(getAllCoordinates(route.params.startCoordinates, route.params.endCoordinates));
+  }, []);
 
   useEffect(() => {
     const source = axios.CancelToken.source();
@@ -19,7 +22,7 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
       try {
         const response = await axios.get(weatherBaseUrl, { params: {
           lat: coordinate.lat,
-          lon: coordinate.lon,
+          lon: coordinate.lon
       } });
         if (response.status === 200) {
           setWeatherData(oldArray => [...oldArray, {key: coordinate.key, weather: response.data}])
@@ -31,10 +34,11 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
         console.error(error);
       }
     };
-
     coordinates.map(coordinate => {
-      if(coordinate.requested === false)
+      if(coordinate.requested === false) {
+        filteredWeatherData = []; 
         fetchWeather(coordinate);
+      }
       coordinate.requested = true;
     });
 
@@ -48,16 +52,20 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
   )
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{generateJourneyWeatherText(filteredWeatherData, route.params.startCoordinates.name, route.params.endCoordinates.name)}</Text>
-      <Text style={styles.title}>{generateEndWeatherText(filteredWeatherData, route.params.endCoordinates.name)}</Text>
+      <Text style={styles.infoText}>{generateJourneyWeatherText(filteredWeatherData, route.params.startCoordinates.name, route.params.endCoordinates.name)}</Text>
+      <Text style={styles.infoText}>{generateEndWeatherText(filteredWeatherData, route.params.endCoordinates.name)}</Text>
+      {generateWarningText(filteredWeatherData)}
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      {filteredWeatherData.sort((a, b) => a.key > b.key ? 1 : -1).map(r => {
-        if(r.weather !== undefined)
-          return <WeatherReport key={r.key} weatherData={r.weather}/>
-        else
-          return <Text key={r.key}>Loading...</Text>
-      })}    
+      <ScrollView style={styles.scrollView}>
+        {filteredWeatherData.sort((a, b) => a.key > b.key ? 1 : -1).map(r => {
+          if(r.weather !== undefined)
+            return <WeatherReport key={r.key} weatherData={r.weather}/>
+          else
+            return <Text key={r.key}>Loading...</Text>
+        })}    
+      </ScrollView>
     </View>
+    
   );
 }
 
@@ -66,16 +74,27 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 20,
   },
-  title: {
+  infoText: {
+    margin: 10,
+    fontSize: 20,
+    textAlign: 'center',
+  },
+  warning: {
     margin: 10,
     fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   separator: {
-    marginVertical: 30,
+    marginVertical: 10,
     height: 1,
     width: '80%',
+  },
+  scrollView: {
+    width: '100%',
+    marginBottom: 20,
   },
 });
 
@@ -129,17 +148,17 @@ function generateJourneyWeatherText(weatherData : any, origin : string, destinat
   weatherFrequency.sort(function(a, b){return b-a});
 
   if(weatherTypes.length > 0) {
-    let prefix = "Your journey from "+origin+" to "+destination+" should be ";    
+    let prefix = "Your journey from "+origin+" to "+destination+" should be";    
 
     if(weatherTypes.length == 1)
-      return prefix+"entirely "+addYSuffix(weatherTypes[0])+"!";
+      return prefix+" entirely "+addYSuffix(weatherTypes[0])+".";
     if(weatherTypes.length == 2) {
       if(weatherFrequency[0] === weatherFrequency[1])
-        return prefix+" half "+addYSuffix(weatherTypes[0])+" and half "+addYSuffix(weatherTypes[1])+"!";
+        return prefix+" half "+addYSuffix(weatherTypes[0])+" and half "+addYSuffix(weatherTypes[1])+".";
       if(weatherFrequency[0] < weatherFrequency[1])
-        return prefix+" mostly "+addYSuffix(weatherTypes[1])+" with a little bit of "+addYSuffix(weatherTypes[0])+"!";
+        return prefix+" mostly "+addYSuffix(weatherTypes[1])+" with some "+addPluralSuffix(weatherTypes[0])+".";
       else
-        return prefix+" mostly "+addYSuffix(weatherTypes[0])+" with a little bit of "+addYSuffix(weatherTypes[1])+"!";
+        return prefix+" mostly "+addYSuffix(weatherTypes[0])+" with some "+addPluralSuffix(weatherTypes[1])+".";
     }
   };
   return "";
@@ -151,14 +170,23 @@ function generateEndWeatherText(weatherData : any, destination : string) {
     if(weatherData !== undefined && weatherData.length > 0 && weatherData[weatherData.length-1].weather !== undefined) {
       let lastItem = weatherData[weatherData.length-1].weather;
       let endWeather = lastItem.weather[0].main;
-      if(endWeather.toLowerCase() === "clouds")
-        return "It is likely to be cloudy in "+destination+" when you arrive.";
-      if(endWeather.toLowerCase() === "sun")
-        return "It is likely to be nice and sunny in "+destination+" when you arrive.";
-      if(endWeather.toLowerCase() === "rain")
-        return "Bring an umbrella. You can expect it to be raining in "+destination+" for when you arrive.";
+      if(endWeather.toLowerCase() === 'sun' || endWeather.toLowerCase() === 'clear')
+        return "Skies are likely to be nice and clear in "+destination+".";
+      if(endWeather.toLowerCase() === 'clouds')
+        return "It is likely to be cloudy in "+destination+".";
+      if(endWeather.toLowerCase() === 'drizzle')
+        return "Bring an umbrella. You can expect there to be some light rain in "+destination+".";
+      if(endWeather.toLowerCase() === 'rain')
+        return "Bring an umbrella. You can expect it to be raining in "+destination+".";
+      if(endWeather.toLowerCase() === 'atmosphere')
+        return "Watch out for fog in "+destination+".";
+      if(endWeather.toLowerCase() === 'thunderstorm')
+        return "Prepare for thunderstorms in "+destination+".";
+      if(endWeather.toLowerCase() === 'snow')
+        return "Bring a coat. You can expect it to be snowing in "+destination+".";
 
-      console.log("unknown endWeather: "+endWeather);
+      console.error("unknown endWeather: "+endWeather);
+      return "";
     }
   } catch (error) {
     console.error(error);
@@ -170,14 +198,69 @@ function addYSuffix(weatherType: string | undefined) {
   if(weatherType === undefined)
     return "";
 
-  if(weatherType.toLowerCase() === "clouds")
+  if(weatherType.toLowerCase() === 'sun' || weatherType.toLowerCase() === 'clear')
+    return "clear";
+  if(weatherType.toLowerCase() === 'clouds')
     return "cloudy";
-  if(weatherType.toLowerCase() === "sun")
-    return "sunny";
-  if(weatherType.toLowerCase() === "rain")
-    return "rainy";
+  if(weatherType.toLowerCase() === 'drizzle')
+    return "light rain";
+  if(weatherType.toLowerCase() === 'rain')
+    return "heavy rain";
+  if(weatherType.toLowerCase() === 'atmosphere')
+    return "foggy";
+  if(weatherType.toLowerCase() === 'thunderstorm')
+    return "thunderstorms";
+  if(weatherType.toLowerCase() === 'snow')
+    return "snowing";
+
+  console.log("unknown y weather type: "+weatherType);
+  return weatherType;
+}
+
+function addPluralSuffix(weatherType: string | undefined) {
+  if(weatherType === undefined)
+    return "";
+
+  if(weatherType.toLowerCase() === 'sun' || weatherType.toLowerCase() === 'clear')
+    return "clear skies";
+  if(weatherType.toLowerCase() === 'clouds')
+    return "clouds";
+  if(weatherType.toLowerCase() === 'drizzle')
+    return "light rain";
+  if(weatherType.toLowerCase() === 'rain')
+    return "heavy rain";
+  if(weatherType.toLowerCase() === 'atmosphere')
+    return "fog";
+  if(weatherType.toLowerCase() === 'thunderstorm')
+    return "thunderstorms";
+  if(weatherType.toLowerCase() === 'snow')
+    return "snow";
 
   console.log("unknown weather type: "+weatherType);
   return weatherType;
+}
+
+function generateWarningText(weatherData : any) {
+  const weatherForWarning: string[] = [];
+  // heavy rain, thunderstorms, atmospheric, and snow
+  const warningWeatherCodes = [200,201,202,210,211,212,221,230,231,232,502,503,504,511,521,522,531,600,601,602,611,612,613,615,616,620,621,622,701,711,721,731,741,751,761,762,771,781];
+  weatherData.map((i: any) => {
+    if(i.weather !== undefined && i.weather.weather.length > 0) {
+      let weather = i.weather.weather[0];
+      if(warningWeatherCodes.includes(weather.id) && !weatherForWarning.includes(weather.description))
+        weatherForWarning.push(weather.description)
+    }
+  });
+
+  if(weatherForWarning.length > 0) {
+    let weatherText;
+    if(weatherForWarning.length == 1)
+      weatherText = weatherForWarning[0];
+    else {
+      weatherText = weatherForWarning.slice(0, weatherForWarning.length-1).join(', ');
+      weatherText += ", and "+weatherForWarning[weatherForWarning.length-1];
+    }
+    return <Text style={styles.warning}>Watch out for {weatherText} en route!</Text>
+  }
 }
 
