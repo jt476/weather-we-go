@@ -9,6 +9,8 @@ let coordinates: any[] = [];
 
 export default function ResultScreen({ route, navigation } : {route: any, navigation: any}) {
   console.log(route.params);
+  if(coordinates.length < 1)
+    coordinates = getAllCoordinates(route.params.startCoordinates, route.params.endCoordinates);
   const [weatherData, setWeatherData] = useState<any[]>([]);
 
   useEffect(() => {
@@ -46,8 +48,8 @@ export default function ResultScreen({ route, navigation } : {route: any, naviga
   )
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{generateJourneyWeatherText(filteredWeatherData, route.params.origin, route.params.destination)}</Text>
-      <Text style={styles.title}>{generateEndWeatherText(filteredWeatherData, route.params.destination)}</Text>
+      <Text style={styles.title}>{generateJourneyWeatherText(filteredWeatherData, route.params.startCoordinates.name, route.params.endCoordinates.name)}</Text>
+      <Text style={styles.title}>{generateEndWeatherText(filteredWeatherData, route.params.endCoordinates.name)}</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       {filteredWeatherData.sort((a, b) => a.key > b.key ? 1 : -1).map(r => {
         if(r.weather !== undefined)
@@ -77,12 +79,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const getAllCoordinates = (params : any) => {
+const getAllCoordinates = (startCoordinates : Object, endCoordinates : Object) => {
   let index = 0;
-  let coordinates = [{key: index++, lat: params.startLat, lon: params.startLon, requested: false}];
+  let coordinates = [{key: index++, lat: startCoordinates.lat, lon: startCoordinates.lon, requested: false}];
 
-  let latDistance = params.endLat - params.startLat;
-  let lonDistance = params.endLon - params.startLon;
+  let latDistance = endCoordinates.lat - startCoordinates.lat;
+  let lonDistance = endCoordinates.lon - startCoordinates.lon;
 
   let totalDistance = Math.abs(latDistance) + Math.abs(lonDistance);
 
@@ -90,8 +92,8 @@ const getAllCoordinates = (params : any) => {
     let logBase = 1.35;
     let numOfCalls = Math.ceil(Math.log(totalDistance) / Math.log(logBase));
 
-    let latStart = params.startLat;
-    let lonStart = params.startLon;
+    let latStart = startCoordinates.lat;
+    let lonStart = startCoordinates.lon;
 
     let latJump = latDistance / numOfCalls;
     let lonJump = lonDistance / numOfCalls;
@@ -102,12 +104,14 @@ const getAllCoordinates = (params : any) => {
     }
   }
 
-  coordinates.push({key: index++, lat: params.endLat, lon: params.endLon, requested: false});
+  coordinates.push({key: index++, lat: endCoordinates.lat, lon: endCoordinates.lon, requested: false});
 
   return coordinates;
 }
 
 function generateJourneyWeatherText(weatherData : any, origin : string, destination : string) {
+  if(origin === 'Current Location') origin = 'your current location';
+  if(destination === 'Current Location') destination = 'your current location';
   let weatherCount : { [key:string] : number } = {};
   
   weatherData.map((i: any) => {
@@ -142,6 +146,7 @@ function generateJourneyWeatherText(weatherData : any, origin : string, destinat
 }
 
 function generateEndWeatherText(weatherData : any, destination : string) {
+  if(destination === 'Current Location') destination = 'your current location';
   try{
     if(weatherData !== undefined && weatherData.length > 0 && weatherData[weatherData.length-1].weather !== undefined) {
       let lastItem = weatherData[weatherData.length-1].weather;

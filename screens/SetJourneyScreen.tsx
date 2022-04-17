@@ -19,6 +19,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   const [lastFocused, setLastFocused] = useState(endAutoCompleteRef);
 
   const useCurrentLoc = (f : any) => {
+    Keyboard.dismiss();
     (async () => {
       let { status } = await ExpoLocation.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
