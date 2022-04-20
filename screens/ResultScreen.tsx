@@ -134,7 +134,7 @@ function generateJourneyWeatherText(weatherData : any, origin : string, destinat
   let weatherCount : { [key:string] : number } = {};
   
   weatherData.map((i: any) => {
-    if(i.weather !== undefined && i.weather.weather.length > 0) {
+    if(i.weather?.weather !== undefined && i.weather.weather.length > 0) {
       let weather = i.weather.weather[0].main;
       if( weatherCount[weather] == undefined )
         weatherCount[weather] = 1;
@@ -159,31 +159,45 @@ function generateJourneyWeatherText(weatherData : any, origin : string, destinat
         return prefix+" mostly "+addYSuffix(weatherTypes[1])+" with some "+addPluralSuffix(weatherTypes[0])+".";
       else
         return prefix+" mostly "+addYSuffix(weatherTypes[0])+" with some "+addPluralSuffix(weatherTypes[1])+".";
+    } else {
+      return prefix + " a mix of " + weatherSentenceListJoin(weatherTypes, addPluralSuffix) + ".";
     }
   };
   return "";
 }
 
+function weatherSentenceListJoin(array: any[], f: (arg0: any) => string) {
+  if(array.length == 1) {
+    return array[0];
+  }
+  let res = "";
+  array.slice(0, array.length-1).map(i => res += f(i)+", ")
+  res += "and " + f(array[array.length-1]);
+  return res;
+}
+
 function generateEndWeatherText(weatherData : any, destination : string) {
   if(destination === 'Current Location') destination = 'your current location';
+
+  let suffix = " when you arrive.";
   try{
     if(weatherData !== undefined && weatherData.length > 0 && weatherData[weatherData.length-1].weather !== undefined) {
       let lastItem = weatherData[weatherData.length-1].weather;
       let endWeather = lastItem.weather[0].main;
       if(endWeather.toLowerCase() === 'sun' || endWeather.toLowerCase() === 'clear')
-        return "Skies are likely to be nice and clear in "+destination+".";
+        return "Skies are likely to be nice and clear in "+destination+suffix;
       if(endWeather.toLowerCase() === 'clouds')
-        return "It is likely to be cloudy in "+destination+".";
+        return "It is likely to be cloudy in "+destination+suffix;
       if(endWeather.toLowerCase() === 'drizzle')
-        return "Bring an umbrella. You can expect there to be some light rain in "+destination+".";
+        return "Bring an umbrella! You can expect there to be some light rain in "+destination+suffix;
       if(endWeather.toLowerCase() === 'rain')
-        return "Bring an umbrella. You can expect it to be raining in "+destination+".";
+        return "Bring an umbrella! You can expect it to be raining in "+destination+suffix;
       if(endWeather.toLowerCase() === 'atmosphere')
-        return "Watch out for fog in "+destination+".";
+        return "Watch out for fog in "+destination+suffix;
       if(endWeather.toLowerCase() === 'thunderstorm')
-        return "Prepare for thunderstorms in "+destination+".";
+        return "Prepare for thunderstorms in "+destination+suffix;
       if(endWeather.toLowerCase() === 'snow')
-        return "Bring a coat. You can expect it to be snowing in "+destination+".";
+        return "Bring a coat and gloves! You can expect it to be snowing in "+destination+suffix;
 
       console.error("unknown endWeather: "+endWeather);
       return "";
@@ -242,6 +256,7 @@ function addPluralSuffix(weatherType: string | undefined) {
 
 function generateWarningText(weatherData : any) {
   const weatherForWarning: string[] = [];
+
   // heavy rain, thunderstorms, atmospheric, and snow
   const warningWeatherCodes = [200,201,202,210,211,212,221,230,231,232,502,503,504,511,521,522,531,600,601,602,611,612,613,615,616,620,621,622,701,711,721,731,741,751,761,762,771,781];
   weatherData.map((i: any) => {
@@ -253,13 +268,7 @@ function generateWarningText(weatherData : any) {
   });
 
   if(weatherForWarning.length > 0) {
-    let weatherText;
-    if(weatherForWarning.length == 1)
-      weatherText = weatherForWarning[0];
-    else {
-      weatherText = weatherForWarning.slice(0, weatherForWarning.length-1).join(', ');
-      weatherText += ", and "+weatherForWarning[weatherForWarning.length-1];
-    }
+    let weatherText = weatherSentenceListJoin(weatherForWarning, String);
     return <Text style={styles.warning}>Watch out for {weatherText} en route!</Text>
   }
 }

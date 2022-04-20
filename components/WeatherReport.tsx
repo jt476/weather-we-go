@@ -5,7 +5,13 @@ import {countries} from 'country-data';
 
 
 export default function WeatherReport(weatherData : any) {
+    if(weatherData?.weatherData?.name === undefined || weatherData.weatherData.name.length < 1)
+        return <View></View>;
+    
     let location = weatherData.weatherData.name;
+    if(location === undefined || location.length < 1) {
+        console.log(weatherData);
+    }
     let countryCode = weatherData.weatherData.sys.country;
     let tempActual = Math.round(weatherData.weatherData.main.temp);
     let tempFeelsLike = Math.round(weatherData.weatherData.main.feels_like);
@@ -22,22 +28,25 @@ export default function WeatherReport(weatherData : any) {
             <View style={styles.titleBox}>
                 <View style={{flex: 3, flexDirection: 'column', justifyContent: 'flex-start', marginTop: 20, marginLeft: 10}}>
                     <Text style={styles.title}>{weather.description.replace(/\b(\w)/g, (k: string) => k.toUpperCase())}</Text>
-                    <Text style={styles.location}>{location}, {countries[countryCode].name}</Text>
+                    <Text style={styles.location}>{location}, {countries[countryCode]?.name === undefined ? countryCode : countries[countryCode].name}</Text>
                 </View>
                 <View style={{flex: 1}}>
                     <Image style={styles.weatherIcon} source={getIconTypeFromWeather(weather.icon)}/>
                 </View>
             </View>
             <View style={{flex: 3, flexDirection: 'row', marginLeft: 10, marginRight: 10, marginBottom: 10}}>
-                <Text style={{flex: 1, fontSize: 14, textAlign: 'left'}}>Temperature: {tempActual}°C</Text>
-                <Text style={{flex: 1, fontSize: 14, textAlign: 'center'}}>Feels Like: {tempFeelsLike}°C</Text>
-                <Text style={{flex: 1, fontSize: 14, textAlign: 'right'}}>Wind Speed: {windSpeed} mph</Text>
+                <Text style={{flex: 1, fontSize: 14, textAlign: 'left'}}>Temperature: <Text style={styles.number}>{tempActual}°C</Text></Text>
+                <Text style={{flex: 1, fontSize: 14, textAlign: 'center'}}>Feels Like: <Text style={styles.number}>{tempFeelsLike}°C</Text></Text>
+                <Text style={{flex: 1, fontSize: 14, textAlign: 'right'}}>Wind Speed: <Text style={styles.number}>{windSpeed} mph</Text></Text>
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    number: {
+        fontSize: 16,
+    },
     weatherIcon: {
         marginRight: 10,
         height: 80,

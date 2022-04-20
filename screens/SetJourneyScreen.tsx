@@ -131,20 +131,17 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   };
 
   useEffect(() => {
+    setStartAutoCompleteValue(currentLocationStr);
     if (startAutoCompleteRef !== null && route.params.endCoordinates == null) {
-      setStartAutoCompleteValue(currentLocationStr);
       endAutoCompleteRef.current?.focus();
     } else {
-      setStartAutoCompleteValue(currentLocationStr);
       setEndAutoCompleteValue(route.params.endCoordinates.name);
       setEndCoordinatesState(route.params.endCoordinates);
     }
   }, []);
 
   return (
-    <View
-        style={styles.keyboardContainer}
-      >
+    <View style={styles.keyboardContainer}>
       <View style={{ flexDirection: 'column', justifyContent: 'flex-start'}}>
         {/* Start Input */}
         <View style={styles.locationInputContainer}>
@@ -307,7 +304,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         </View>
       </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <ScrollView style={{}}>
+      <ScrollView style={{zIndex: -9, elevation: -9}}>
         <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
           <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
         </View>
@@ -315,7 +312,6 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
           <Button title="Go" onPress={() => navigateOnwards()}/>
         </View>
       </ScrollView>
-
     </View>
   );
 }

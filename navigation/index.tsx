@@ -8,7 +8,7 @@ import ResultScreen from '../screens/ResultScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
-    <NavigationContainer theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <NavigationContainer theme={DarkTheme}>
       <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{}}>
         <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SetJourneyScreen" component={SetJourneyScreen} options={{ title: 'Configure your Journey', headerShown: true }} />
