@@ -155,6 +155,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
             <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
               <View style={{flex:6, height:'100%', justifyContent:'center'}}>
                 <GooglePlacesAutocomplete 
+                
                   styles={{
                     textInput: {
                       borderRadius: 0,
@@ -174,9 +175,12 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                     onTextInput: () => {
                       setEndCoordinatesState({});
                     },
-                    onFocus: () => {setLastFocused(startAutoCompleteRef)},
+                    onFocus: () => {
+                      setLastFocused(startAutoCompleteRef)
+                    },
                     ref: startAutoCompleteRef,
                     value: startAutoCompleteValue,
+                    selectTextOnFocus: true,
                     onChangeText: setStartAutoCompleteValue,
                   }}
                   placeholder=""
@@ -256,7 +260,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                     onTextInput: () => {
                       setEndCoordinatesState({});
                     },
-                    onFocus: () => {setLastFocused(endAutoCompleteRef)},
+                    onFocus: () => {
+                      setLastFocused(endAutoCompleteRef);
+                    },
+                    selectTextOnFocus: true,
                     ref: endAutoCompleteRef,
                     value: endAutoCompleteValue,
                     onChangeText: setEndAutoCompleteValue,
@@ -304,7 +311,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         </View>
       </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <ScrollView style={{zIndex: -9, elevation: -9}}>
+      <ScrollView style={{zIndex: -9, elevation: -9}} keyboardShouldPersistTaps="handled">
         <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
           <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
         </View>
