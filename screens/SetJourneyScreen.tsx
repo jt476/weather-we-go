@@ -165,8 +165,6 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                       position: 'absolute',
                       width: '100%',
                       paddingTop: 40,
-                      elevation: 9,
-                      zIndex: 9,
                     }
                   }}
                   fetchDetails={true}
@@ -225,7 +223,6 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
           padding: 10,
           paddingRight: 20,
           alignItems: 'flex-start',
-          zIndex: -10,
           elevation: -10,}}>
           <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
             <FontAwesome5 name="flag-checkered" size={24} color="white"/>
@@ -247,8 +244,6 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                       position: 'absolute',
                       paddingTop: 40,
                       width: '100%',
-                      elevation: 8,
-                      zIndex: 8,
                     }
                   }}
                   fetchDetails={true}
@@ -304,11 +299,11 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
         </View>
       </View>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <ScrollView style={{zIndex: -9, elevation: -9}}>
-        <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
+      <ScrollView style={{}}>
+        <View style={{paddingLeft: 20, paddingRight: 20}}>
           <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
         </View>
-        <View style={{padding: 20, zIndex: -9, elevation: -9}}>
+        <View style={{padding: 20}}>
           <Button title="Go" onPress={() => navigateOnwards()}/>
         </View>
       </ScrollView>
@@ -323,16 +318,12 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingRight: 20,
     alignItems: 'flex-start',
-    zIndex: -9,
-    elevation: -9,
   },
   locationTextInputContainer: {
     flex: 6,
     width: '100%',
     height: 80,
     flexDirection: 'column', 
-    zIndex: -9,
-    elevation: -9,
   },
   getStartedContainer: {
     alignItems: 'center',
@@ -352,8 +343,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignContent: 'center',
-    zIndex: -9,
-    elevation: -9,
   },
   keyboardContainer: {
     flex: 1,
