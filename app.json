@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "weather-we-go",
+    "name": "Weather We Go",
     "slug": "weather-we-go",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,6 +20,8 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.thompsontech.weatherwego",
+      "buildNumber": "1.0.0",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Upon request, this app uses your current location to determine where you are starting/finishing your journey."
       }
