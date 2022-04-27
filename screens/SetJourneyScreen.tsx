@@ -1,4 +1,4 @@
-import { StyleSheet, KeyboardAvoidingView, Platform, Button, Keyboard, ScrollView } from 'react-native';
+import { StyleSheet, KeyboardAvoidingView, Platform, Button, Keyboard, ScrollView, Dimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import * as ExpoLocation from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -8,12 +8,13 @@ import RecentLocations from '../components/RecentLocations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const currentLocationStr = "Current Location";
+const numOfLocationsToKeep = 10;
 
 export default function SetJourneyScreen({ route, navigation } : {route: any, navigation: any}) {
   const startAutoCompleteRef = useRef();
   const endAutoCompleteRef = useRef();
-  const [startAutoCompleteValue, setStartAutoCompleteValue] = useState<String>();
-  const [endAutoCompleteValue, setEndAutoCompleteValue] = useState<String>();
+  const [startAutoCompleteValue, setStartAutoCompleteValue] = useState<String>('');
+  const [endAutoCompleteValue, setEndAutoCompleteValue] = useState<String>('');
   const [startCoordinatesState, setStartCoordinatesState] = useState({});
   const [endCoordinatesState, setEndCoordinatesState] = useState({});
   const [lastFocused, setLastFocused] = useState(endAutoCompleteRef);
@@ -55,9 +56,10 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
       let previousLocations = await getPreviousLocations();
       previousLocations = previousLocations.filter((i : any) => i?.name !== undefined);
       previousLocations = previousLocations.filter((i : any) => i.name !== location.name);
+      location.added = Date.now();
       previousLocations.push(location);
-      if(previousLocations.length > 5) {
-        previousLocations = previousLocations.slice(Math.max(previousLocations.length - 5, 0))
+      if(previousLocations.length > numOfLocationsToKeep) {
+        previousLocations = previousLocations.slice(Math.max(previousLocations.length - numOfLocationsToKeep, 0))
       }
       storePreviousLocations(previousLocations);
     }
@@ -140,185 +142,188 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
     }
   }, []);
 
+  console.log(Math.round((Dimensions.get('window').height - 400)/50));
+
   return (
-    <View style={styles.keyboardContainer}>
-      <View style={{ flexDirection: 'column', justifyContent: 'flex-start'}}>
-        {/* Start Input */}
-        <View style={styles.locationInputContainer}>
-          <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
-            <FontAwesome5 name="map-pin" size={24} color="white" />
-          </View>
-          <View style={styles.locationTextInputContainer}>
-            <View style={{flex:1, width:'100%', justifyContent:'center', paddingLeft: 10}}>
-              <Text>Start</Text>
+    <View style={{width: '100%', alignItems: 'center'}}>
+      <View style={styles.keyboardContainer}>
+        <View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%'}}>
+          {/* Start Input */}
+          <View style={styles.locationInputContainer}>
+            <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
+              <FontAwesome5 name="map-pin" size={24} color="white" />
             </View>
-            <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
-              <View style={{flex:6, height:'100%', justifyContent:'center'}}>
-                <GooglePlacesAutocomplete 
-                
-                  styles={{
-                    textInput: {
-                      borderRadius: 0,
-                      borderBottomLeftRadius: 5,
-                      borderTopLeftRadius: 5,
-                    },
-                    listView: {
-                      position: 'absolute',
-                      width: '100%',
-                      paddingTop: 40,
-                      elevation: 9,
-                      zIndex: 9,
-                    }
-                  }}
-                  fetchDetails={true}
-                  textInputProps={{
-                    onTextInput: () => {
-                      setEndCoordinatesState({});
-                    },
-                    onFocus: () => {
-                      setLastFocused(startAutoCompleteRef)
-                    },
-                    ref: startAutoCompleteRef,
-                    value: startAutoCompleteValue,
-                    selectTextOnFocus: true,
-                    onChangeText: setStartAutoCompleteValue,
-                  }}
-                  placeholder=""
-                  query={{
-                    key: route.params.googlePlacesApiKey,
-                    language: 'en', 
-                  }}
-                  onPress={(data : any, details = null) => {
-                    if(details !== null) {
-                      setStartAutoCompleteValue(data.description);
-                      setStartCoordinatesState({
-                        lat: details.geometry.location.lat, 
-                        lon: details.geometry.location.lng,
-                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
-                        description: data.description
-                      });
-                      //navigateOnwards();
-                    }
-                  }}
-                  onFail={(error) => console.error(error)}
-                  requestUrl={{
-                    url:
-                      'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
-                    useOnPlatform: 'web',
-                  }}/>
-                </View>
-                <View style={{flex:1, 
-                  height: 44, 
-                  justifyContent:'center',
-                  alignItems: 'center',
-                  backgroundColor: '#007aff',
-                  borderBottomLeftRadius: 0,
-                  borderTopLeftRadius: 0,
-                  borderBottomRightRadius: 5, 
-                  borderTopRightRadius: 5,
-                  alignContent: 'center'
-                  }}>
-                  <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setStartAutoCompleteValue)}/>
-                </View>
+            <View style={styles.locationTextInputContainer}>
+              <View style={{flex:1, width:'100%', justifyContent:'center', paddingLeft: 10}}>
+                <Text>Start</Text>
               </View>
+              <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
+                <View style={{flex:6, height:'100%', justifyContent:'center'}}>
+                  <GooglePlacesAutocomplete 
+                  
+                    styles={{
+                      textInput: {
+                        borderRadius: 0,
+                        borderBottomLeftRadius: 5,
+                        borderTopLeftRadius: 5,
+                      },
+                      listView: {
+                        position: 'absolute',
+                        width: '100%',
+                        paddingTop: 40,
+                        elevation: 9,
+                        zIndex: 9,
+                      }
+                    }}
+                    fetchDetails={true}
+                    textInputProps={{
+                      onTextInput: () => {
+                        setEndCoordinatesState({});
+                      },
+                      onFocus: () => {
+                        setLastFocused(startAutoCompleteRef)
+                      },
+                      ref: startAutoCompleteRef,
+                      value: startAutoCompleteValue,
+                      selectTextOnFocus: true,
+                      onChangeText: setStartAutoCompleteValue,
+                    }}
+                    placeholder=""
+                    query={{
+                      key: route.params.googlePlacesApiKey,
+                      language: 'en', 
+                    }}
+                    onPress={(data : any, details = null) => {
+                      if(details !== null) {
+                        setStartAutoCompleteValue(data.description);
+                        setStartCoordinatesState({
+                          lat: details.geometry.location.lat, 
+                          lon: details.geometry.location.lng,
+                          name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
+                          description: data.description
+                        });
+                      }
+                    }}
+                    onFail={(error) => console.error(error)}
+                    requestUrl={{
+                      url:
+                        'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
+                      useOnPlatform: 'web',
+                    }}/>
+                  </View>
+                  <View style={{flex:1, 
+                    height: 44, 
+                    justifyContent:'center',
+                    alignItems: 'center',
+                    backgroundColor: '#007aff',
+                    borderBottomLeftRadius: 0,
+                    borderTopLeftRadius: 0,
+                    borderBottomRightRadius: 5, 
+                    borderTopRightRadius: 5,
+                    alignContent: 'center'
+                    }}>
+                    <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setStartAutoCompleteValue)}/>
+                  </View>
+                </View>
+            </View>
+          </View>
+          {/* End Input */}
+          <View style={{flexDirection: 'row',
+            width:'100%',
+            padding: 10,
+            paddingRight: 20,
+            alignItems: 'flex-start',
+            zIndex: -10,
+            elevation: -10,}}>
+            <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
+              <FontAwesome5 name="flag-checkered" size={24} color="white"/>
+            </View>
+            <View style={styles.locationTextInputContainer}>
+              <View style={{flex:1, width:'100%', justifyContent:'center', paddingLeft: 10}}>
+                <Text>End</Text>
+              </View>
+              <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
+                <View style={{flex:6, height:'100%', justifyContent:'center'}}>
+                  <GooglePlacesAutocomplete 
+                    styles={{
+                      textInput: {
+                        borderRadius: 0,
+                        borderBottomLeftRadius: 5,
+                        borderTopLeftRadius: 5,
+                      },
+                      listView: {
+                        position: 'absolute',
+                        paddingTop: 40,
+                        width: '100%',
+                        elevation: 8,
+                        zIndex: 8,
+                      }
+                    }}
+                    fetchDetails={true}
+                    textInputProps={{
+                      onTextInput: () => {
+                        setEndCoordinatesState({});
+                      },
+                      onFocus: () => {
+                        setLastFocused(endAutoCompleteRef);
+                      },
+                      selectTextOnFocus: true,
+                      ref: endAutoCompleteRef,
+                      value: endAutoCompleteValue,
+                      onChangeText: setEndAutoCompleteValue,
+                    }}
+                    placeholder=''
+                    query={{
+                      key: route.params.googlePlacesApiKey,
+                      language: 'en', 
+                    }}
+                    onPress={(data : any, details = null) => {
+                      if(details !== null) {
+                        setEndAutoCompleteValue(data.description);
+                        setEndCoordinatesState({
+                          lat: details.geometry.location.lat, 
+                          lon: details.geometry.location.lng,
+                          name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
+                          description: data.description
+                        });
+                        //navigateOnwards();
+                      } else {
+                        setEndAutoCompleteValue('');
+                      }
+                    }}
+                    onFail={(error) => console.error(error)}
+                    requestUrl={{
+                      url:
+                        'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
+                      useOnPlatform: 'web',
+                    }}/>
+                  </View>
+                  <View style={{flex:1, 
+                    height: 44, 
+                    justifyContent:'center',
+                    alignItems: 'center',
+                    backgroundColor: '#007aff',
+                    borderBottomLeftRadius: 0,
+                    borderTopLeftRadius: 0,
+                    borderBottomRightRadius: 5, 
+                    borderTopRightRadius: 5
+                    }}>
+                    <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setEndAutoCompleteValue)}/>
+                  </View>
+                </View>
+            </View>
           </View>
         </View>
-        {/* End Input */}
-        <View style={{flexDirection: 'row',
-          width:'100%',
-          padding: 10,
-          paddingRight: 20,
-          alignItems: 'flex-start',
-          zIndex: -10,
-          elevation: -10,}}>
-          <View style={{flex:1, padding: 5, width:'100%', height: 80, justifyContent: 'center', alignItems: 'center'}}>
-            <FontAwesome5 name="flag-checkered" size={24} color="white"/>
+        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+        <ScrollView style={{zIndex: -9, elevation: -9, width: '100%'}} keyboardShouldPersistTaps="handled">
+          <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9, width: '100%'}}>
+            <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={Math.max(Math.round((Dimensions.get('window').height - 400)/50), 3)} />
           </View>
-          <View style={styles.locationTextInputContainer}>
-            <View style={{flex:1, width:'100%', justifyContent:'center', paddingLeft: 10}}>
-              <Text>End</Text>
-            </View>
-            <View style={{flex:2, width:'100%', justifyContent:'center', flexDirection:'row'}}>
-              <View style={{flex:6, height:'100%', justifyContent:'center'}}>
-                <GooglePlacesAutocomplete 
-                  styles={{
-                    textInput: {
-                      borderRadius: 0,
-                      borderBottomLeftRadius: 5,
-                      borderTopLeftRadius: 5,
-                    },
-                    listView: {
-                      position: 'absolute',
-                      paddingTop: 40,
-                      width: '100%',
-                      elevation: 8,
-                      zIndex: 8,
-                    }
-                  }}
-                  fetchDetails={true}
-                  textInputProps={{
-                    onTextInput: () => {
-                      setEndCoordinatesState({});
-                    },
-                    onFocus: () => {
-                      setLastFocused(endAutoCompleteRef);
-                    },
-                    selectTextOnFocus: true,
-                    ref: endAutoCompleteRef,
-                    value: endAutoCompleteValue,
-                    onChangeText: setEndAutoCompleteValue,
-                  }}
-                  placeholder=''
-                  query={{
-                    key: route.params.googlePlacesApiKey,
-                    language: 'en', 
-                  }}
-                  onPress={(data : any, details = null) => {
-                    if(details !== null) {
-                      setEndAutoCompleteValue(data.description);
-                      setEndCoordinatesState({
-                        lat: details.geometry.location.lat, 
-                        lon: details.geometry.location.lng,
-                        name: data.terms !== undefined && data.terms.length > 0 ? data.terms[0].value : data.description,
-                        description: data.description
-                      });
-                      //navigateOnwards();
-                    } else {
-                      setEndAutoCompleteValue('');
-                    }
-                  }}
-                  onFail={(error) => console.error(error)}
-                  requestUrl={{
-                    url:
-                      'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api',
-                    useOnPlatform: 'web',
-                  }}/>
-                </View>
-                <View style={{flex:1, 
-                  height: 44, 
-                  justifyContent:'center',
-                  alignItems: 'center',
-                  backgroundColor: '#007aff',
-                  borderBottomLeftRadius: 0,
-                  borderTopLeftRadius: 0,
-                  borderBottomRightRadius: 5, 
-                  borderTopRightRadius: 5
-                  }}>
-                  <FontAwesome5.Button name="location-arrow" size={14} style={styles.locationButton} onPress={() => useCurrentLoc(setEndAutoCompleteValue)}/>
-                </View>
-              </View>
+          <View style={{padding: 20, zIndex: -9, elevation: -9, width: '100%'}}>
+            <Button title="Go" onPress={() => navigateOnwards()}/>
           </View>
-        </View>
+        </ScrollView>
       </View>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <ScrollView style={{zIndex: -9, elevation: -9}} keyboardShouldPersistTaps="handled">
-        <View style={{paddingLeft: 20, paddingRight: 20, zIndex: -9, elevation: -9}}>
-          <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Previous locations:" numToDisplay={5} />
-        </View>
-        <View style={{padding: 20, zIndex: -9, elevation: -9}}>
-          <Button title="Go" onPress={() => navigateOnwards()}/>
-        </View>
-      </ScrollView>
     </View>
   );
 }
@@ -366,6 +371,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     height: '100%',
-    width: '100%'
+    width: '100%',
+    maxWidth: 600,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignContent: 'center'
   },
 });

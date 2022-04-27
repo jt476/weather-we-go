@@ -5,6 +5,7 @@ import Colors from '../constants/Colors';
 import { FontAwesome5 } from '@expo/vector-icons';
 import RecentLocations from '../components/RecentLocations';
 import axios from 'axios';
+import { useIsFocused } from '@react-navigation/native';
 
 const apiKeysBaseUrl = 'https://johnnythompson.co.uk/orchestrator/api-key/';
 
@@ -28,6 +29,9 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
   let miniLocationInput = new Animated.ValueXY({x:0, y: Dimensions.get('window').height});
 
   let googlePlacesApiKey = "";
+
+  const isFocused = useIsFocused();
+
   useEffect(() => {
     const getAPIKey = async () => {
       try {
@@ -85,8 +89,10 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           });
         });
       });
-    });
+      });
   }, []);
+
+  //useEffect(() => {}, [destinationViewHeight]);
 
   const handlePreviousLocationPress = (location: any):void => {
     navigation.navigate("SetJourneyScreen", {
@@ -136,34 +142,36 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
           resizeMode: "contain",
           marginTop: 50,
           marginBottom: 50,
-          flex: 3,
+          flex: 1,
         }} />
-        <Animated.View style={{
-          backgroundColor: '#979dac',
-          width: '100%',
-          borderTopLeftRadius: 15,
-          borderTopRightRadius: 15,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
-          justifyContent: 'center',
-          padding: 10,
-          flex: 1, 
-          transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
-          <View style={{backgroundColor: 'none', justifyContent: 'center'}}>
-            <FontAwesome5.Button name='search' color='#1c2026' 
-            onPress={() => handlePreviousLocationPress(null)} style={{backgroundColor: 'white'}}
-            light>
-              Where are you going?
-            </FontAwesome5.Button>
-            <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Quick destinations:" numToDisplay={3}/>
-          </View>
-        </Animated.View>
+        <View style={{justifyContent: "flex-end", alignItems: 'center', width: '100%', backgroundColor: 'none', flex: 1}}>
+          <Animated.View style={{
+            backgroundColor: '#979dac',
+            width: '100%',
+            maxWidth: 600,
+            borderTopLeftRadius: 15,
+            borderTopRightRadius: 15,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+            justifyContent: 'center',
+            padding: 20,
+            transform: [{ translateX: miniLocationInput.x }, { translateY: miniLocationInput.y }]}}>
+            <View style={{backgroundColor: 'none', justifyContent: 'center'}}>
+              <FontAwesome5.Button name='search' color='#1c2026' 
+              onPress={() => handlePreviousLocationPress(null)} style={{backgroundColor: 'white'}}
+              light>
+                Where are you going?
+              </FontAwesome5.Button>
+              <RecentLocations handlePreviousLocationPress={handlePreviousLocationPress} title="Quick destinations:" numToDisplay={Math.max(Math.round(((Dimensions.get('window').height / 2)-150)/50), 2)}/>
+            </View>
+          </Animated.View>
+        </View>
       </Animated.View>
     </View>
   );
