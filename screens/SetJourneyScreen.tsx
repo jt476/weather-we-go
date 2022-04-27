@@ -143,7 +143,7 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
   }, []);
 
   return (
-    <View style={{width: '100%', alignItems: 'center'}}>
+    <View style={{width: '100%', height: '100%', alignItems: 'center'}}>
       <View style={styles.keyboardContainer}>
         <View style={{ flexDirection: 'column', justifyContent: 'flex-start', width: '100%'}}>
           {/* Start Input */}
@@ -276,6 +276,8 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
                       language: 'en', 
                     }}
                     onPress={(data : any, details = null) => {
+                      console.log(data);
+                      console.log(details);
                       if(details !== null) {
                         setEndAutoCompleteValue(data.description);
                         setEndCoordinatesState({
