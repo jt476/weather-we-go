@@ -30,8 +30,6 @@ export default function SplashScreen({ route, navigation } : {route: any, naviga
 
   let googlePlacesApiKey = "";
 
-  const isFocused = useIsFocused();
-
   useEffect(() => {
     const getAPIKey = async () => {
       try {

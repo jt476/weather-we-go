@@ -227,7 +227,6 @@ function addYSuffix(weatherType: string | undefined) {
   if(weatherType.toLowerCase() === 'snow')
     return "snowing";
 
-  console.log("unknown y weather type: "+weatherType);
   return weatherType;
 }
 
@@ -249,8 +248,6 @@ function addPluralSuffix(weatherType: string | undefined) {
     return "thunderstorms";
   if(weatherType.toLowerCase() === 'snow')
     return "snow";
-
-  console.log("unknown weather type: "+weatherType);
   return weatherType;
 }
 

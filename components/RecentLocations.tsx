@@ -4,6 +4,7 @@ import { View, Text } from './Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import FontAwesome5 from '@expo/vector-icons/build/FontAwesome5';
+import { useIsFocused } from '@react-navigation/native';
 
 interface LocationInputProps {
   handlePreviousLocationPress: (location: string) => void
@@ -11,8 +12,7 @@ interface LocationInputProps {
 
 export default function LocationInput<LocationInputProps>({handlePreviousLocationPress, title, numToDisplay}) {
   const [previousLocations, setPreviousLocations] = useState<any[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
+  const isFocused = useIsFocused();
   useEffect(() => {
     const getData = async () => {
       try {
@@ -25,11 +25,9 @@ export default function LocationInput<LocationInputProps>({handlePreviousLocatio
       } catch(e) {
         console.error(e);
       }
-      setIsLoaded(true);
     }
-    if(!isLoaded)
-      getData();
-  }, [isLoaded]);
+    getData();
+  }, [isFocused]);
 
   return (
       <View style={{marginTop: 10, marginBottom: 10, backgroundColor: 'none'}}>

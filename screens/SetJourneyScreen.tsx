@@ -142,8 +142,6 @@ export default function SetJourneyScreen({ route, navigation } : {route: any, na
     }
   }, []);
 
-  console.log(Math.round((Dimensions.get('window').height - 400)/50));
-
   return (
     <View style={{width: '100%', alignItems: 'center'}}>
       <View style={styles.keyboardContainer}>
